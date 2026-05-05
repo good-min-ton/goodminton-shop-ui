@@ -79,20 +79,14 @@ function isAuthExpiredCode(code: number) {
   return code === 1005 || code === 1102 || code === 1103;
 }
 
-async function rawFetch<T>(
-  path: string,
-  init: RequestInitExtended = {},
-): Promise<T> {
-  const url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
-  const headers = new Headers(init.headers);
+type Envelope<T> = ApiResponse<T> | { code?: number; message?: string } | null;
 
-  // Auto-attach Bearer token
+function buildHeaders(init: RequestInitExtended): Headers {
+  const headers = new Headers(init.headers);
   if (!init.skipAuth) {
     const token = getAccessToken();
     if (token) headers.set("Authorization", `Bearer ${token}`);
   }
-
-  // Default JSON content-type only when there is a body that is not FormData
   if (
     init.body &&
     !(init.body instanceof FormData) &&
@@ -100,62 +94,77 @@ async function rawFetch<T>(
   ) {
     headers.set("Content-Type", "application/json");
   }
+  return headers;
+}
 
-  const res = await fetch(url, { ...init, headers });
-
-  // Try parse JSON; tolerate empty body (204)
-  let json: unknown = null;
+async function parseEnvelope<T>(res: Response): Promise<Envelope<T>> {
   const text = await res.text();
-  if (text) {
-    try {
-      json = JSON.parse(text);
-    } catch {
-      throw new ApiException("Invalid response from server", 9999, res.status);
-    }
+  if (!text) return null;
+  try {
+    return JSON.parse(text) as Envelope<T>;
+  } catch {
+    throw new ApiException("Invalid response from server", 9999, res.status);
   }
+}
 
-  // Non-OK or non-1000 envelope → maybe expired token → try refresh
-  const envelope = json as ApiResponse<T> | { code: number; message?: string };
+function shouldAttemptRefresh(
+  init: RequestInitExtended,
+  res: Response,
+  code: number | undefined,
+): boolean {
+  if (init.skipAuth || init._retried) return false;
+  if (res.status === 401) return true;
+  return code != null && isAuthExpiredCode(code);
+}
+
+function redirectToLogin(path: string) {
+  const g = globalThis as typeof globalThis & {
+    location?: Location;
+  };
+  if (g.location === undefined || path.includes("/auth/")) return;
+  const next = encodeURIComponent(g.location.pathname + g.location.search);
+  g.location.href = `/login?next=${next}`;
+}
+
+function assertSuccess<T>(res: Response, envelope: Envelope<T>) {
   const code = envelope?.code;
+  if (!res.ok) {
+    throw new ApiException(
+      envelope?.message || `HTTP ${res.status}`,
+      code ?? res.status,
+      res.status,
+    );
+  }
+  if (code != null && code !== 1000) {
+    throw new ApiException(
+      envelope?.message || "Request failed",
+      code,
+      res.status,
+    );
+  }
+}
 
-  if (
-    !init.skipAuth &&
-    !init._retried &&
-    (res.status === 401 || (code != null && isAuthExpiredCode(code)))
-  ) {
+async function rawFetch<T>(
+  path: string,
+  init: RequestInitExtended = {},
+): Promise<T> {
+  const url = path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
+  const res = await fetch(url, { ...init, headers: buildHeaders(init) });
+  const envelope = await parseEnvelope<T>(res);
+
+  if (shouldAttemptRefresh(init, res, envelope?.code)) {
     try {
       await refreshTokens();
       return rawFetch<T>(path, { ...init, _retried: true });
     } catch (err) {
       clearAuth();
-      // Redirect to login on the client (best-effort)
-      if (typeof window !== "undefined" && !path.includes("/auth/")) {
-        const next = encodeURIComponent(
-          window.location.pathname + window.location.search,
-        );
-        window.location.href = `/login?next=${next}`;
-      }
+      redirectToLogin(path);
       throw err;
     }
   }
 
-  if (!res.ok) {
-    throw new ApiException(
-      (envelope as { message?: string })?.message || `HTTP ${res.status}`,
-      code ?? res.status,
-      res.status,
-    );
-  }
-
-  if (code != null && code !== 1000) {
-    throw new ApiException(
-      (envelope as { message?: string })?.message || "Request failed",
-      code,
-      res.status,
-    );
-  }
-
-  return (envelope as ApiResponse<T>)?.result as T;
+  assertSuccess(res, envelope);
+  return (envelope as ApiResponse<T>).result;
 }
 
 // ============================================================
@@ -205,17 +214,21 @@ export const api = {
 };
 
 /**
- * Build query string from object. Skips undefined / null / empty string.
- * Auto-converts 1-based page (client) — backend already expects 1-based per API doc.
+ * Build query string from object. Skips undefined / null / empty string and
+ * any non-primitive values. Backend page is 1-based per API doc.
  */
-export function buildQuery(
-  params: Record<string, string | number | boolean | null | undefined>,
-): string {
-  const entries = Object.entries(params).filter(
-    ([, v]) => v !== undefined && v !== null && v !== "",
-  );
-  if (entries.length === 0) return "";
+export function buildQuery<T extends object>(params: T): string {
   const qs = new URLSearchParams();
-  for (const [k, v] of entries) qs.set(k, String(v));
-  return `?${qs.toString()}`;
+  for (const [k, v] of Object.entries(params)) {
+    if (v === undefined || v === null || v === "") continue;
+    if (
+      typeof v === "string" ||
+      typeof v === "number" ||
+      typeof v === "boolean"
+    ) {
+      qs.set(k, String(v));
+    }
+  }
+  const out = qs.toString();
+  return out ? `?${out}` : "";
 }

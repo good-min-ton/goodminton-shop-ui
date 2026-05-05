@@ -1,77 +1,152 @@
+"use client";
+
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { ProductGrid } from "@/components/storefront/product-grid";
+import { useProductList } from "@/hooks/use-products";
+import { useCategories } from "@/hooks/use-catalog";
 
 export default function HomePage() {
+  const featured = useProductList({
+    page: 1,
+    size: 8,
+    sortBy: "createdAt",
+    sortDir: "desc",
+  });
+  const popular = useProductList({
+    page: 1,
+    size: 8,
+    sortBy: "createdAt",
+    sortDir: "asc",
+  });
+  const categoriesQuery = useCategories();
+
+  const featuredProducts = featured.data?.content ?? [];
+  const popularProducts = popular.data?.content ?? [];
+  const categories = categoriesQuery.data ?? [];
+
   return (
-    <section className="bg-racket-grid relative min-h-[88vh] overflow-hidden bg-stone-50">
-      <div className="absolute top-0 right-0 hidden h-full w-[55%] md:block"
-        style={{
-          background:
-            "linear-gradient(135deg, var(--color-primary-700) 0%, var(--color-primary-900) 100%)",
-          clipPath: "polygon(12% 0%, 100% 0%, 100% 100%, 0% 100%)",
-        }}
-      />
-
-      <div className="container-app relative grid items-center gap-12 py-24 md:grid-cols-2">
-        <div className="stagger-1">
-          <Badge variant="primary" className="mb-6">
-            <span className="bg-primary-500 inline-block h-2 w-2 rounded-full" />
-            Vợt chính hãng — Giao hàng toàn quốc
-          </Badge>
-
-          <h1 className="font-display text-stone-900 mb-6 text-6xl font-extrabold leading-[0.95] tracking-tight md:text-7xl">
-            CHƠI CẦU<br />
-            LÔNG NHƯ<br />
-            <span className="text-primary-700">PRO.</span>
-          </h1>
-
-          <p className="mb-10 max-w-md text-lg font-light text-stone-500">
-            Vợt, giày, phụ kiện cầu lông chuyên nghiệp từ các thương hiệu hàng đầu
-            thế giới.
-          </p>
-
-          <div className="flex flex-wrap gap-3">
-            <Link href="/products">
-              <Button size="lg" uppercase>
-                Mua ngay
-              </Button>
-            </Link>
-            <Link href="/products">
-              <Button size="lg" variant="secondary">
-                Xem catalogue →
-              </Button>
-            </Link>
+    <>
+      <section className="bg-racket-grid border-b border-stone-200">
+        <div className="container-app grid items-center gap-10 py-10 md:grid-cols-[2fr_3fr] md:py-14">
+          <div>
+            <h1 className="font-display text-stone-900 text-5xl leading-[0.95] font-extrabold tracking-tight md:text-6xl">
+              Vợt cầu lông
+              <br />
+              <span className="text-primary-700">chính hãng.</span>
+            </h1>
+            <p className="mt-5 max-w-sm text-stone-500">
+              Yonex, Victor, Lining và nhiều thương hiệu hàng đầu. Giao hàng toàn
+              quốc, đổi trả 7 ngày.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link href="/products">
+                <Button uppercase>Mua ngay</Button>
+              </Link>
+              <Link href="/categories">
+                <Button variant="secondary">Xem theo danh mục</Button>
+              </Link>
+            </div>
           </div>
 
-          <div className="mt-12 flex flex-wrap gap-8">
-            {[
-              { value: "500+", label: "Sản phẩm" },
-              { value: "12K+", label: "Khách hàng" },
-              { value: "5", label: "Chi nhánh" },
-            ].map((s) => (
-              <div key={s.label}>
-                <div className="font-display text-primary-700 text-3xl font-extrabold">
-                  {s.value}
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <ProductGrid
+              products={featuredProducts.slice(0, 4)}
+              loading={featured.isLoading}
+              cols={2}
+              emptyTitle="Chưa có sản phẩm nào để hiển thị"
+              emptyDescription="Quay lại sau khi cửa hàng đăng sản phẩm đầu tiên."
+              className="col-span-2 grid-cols-2 md:grid-cols-2"
+            />
+          </div>
+        </div>
+      </section>
+
+      {categories.length > 0 && (
+        <section className="container-app py-12">
+          <div className="mb-6 flex items-end justify-between">
+            <h2 className="font-display text-stone-900 text-3xl font-extrabold tracking-tight">
+              Danh mục
+            </h2>
+            <Link
+              href="/categories"
+              className="text-primary-700 inline-flex items-center gap-1 text-sm font-medium hover:underline"
+            >
+              <span>Tất cả</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {categories.slice(0, 4).map((c) => (
+              <Link
+                key={c.id}
+                href={`/categories/${c.id}`}
+                className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-stone-900 p-6 text-white transition-shadow hover:shadow-lg"
+              >
+                <div className="bg-racket-grid-dark absolute inset-0 opacity-50" />
+                <div className="relative flex h-full flex-col justify-between">
+                  <div className="font-mono text-[11px] tracking-widest text-stone-400 uppercase">
+                    Danh mục
+                  </div>
+                  <div>
+                    <div className="font-display text-2xl font-extrabold tracking-tight">
+                      {c.name}
+                    </div>
+                    <div className="text-primary-300 mt-1 inline-flex items-center gap-1 text-xs opacity-0 transition-opacity group-hover:opacity-100">
+                      <span>Xem ngay</span>
+                      <ArrowRight size={12} />
+                    </div>
+                  </div>
                 </div>
-                <div className="text-sm text-stone-500">{s.label}</div>
-              </div>
+              </Link>
             ))}
           </div>
-        </div>
+        </section>
+      )}
 
-        <div className="hidden md:block">
-          <div className="text-stone-300/40 font-display text-[140px] leading-none font-extrabold tracking-tighter text-right">
-            🏸
+      <section className="container-app py-12">
+        <div className="mb-6 flex items-end justify-between">
+          <h2 className="font-display text-stone-900 text-3xl font-extrabold tracking-tight">
+            Sản phẩm mới
+          </h2>
+          <Link
+            href="/products?sortBy=createdAt&sortDir=desc"
+            className="text-primary-700 inline-flex items-center gap-1 text-sm font-medium hover:underline"
+          >
+            <span>Xem tất cả</span>
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+        <ProductGrid
+          products={featuredProducts}
+          loading={featured.isLoading}
+          cols={4}
+          emptyTitle="Chưa có sản phẩm mới"
+        />
+      </section>
+
+      {popularProducts.length > 0 && (
+        <section className="container-app py-12">
+          <div className="mb-6 flex items-end justify-between">
+            <h2 className="font-display text-stone-900 text-3xl font-extrabold tracking-tight">
+              Khám phá thêm
+            </h2>
+            <Link
+              href="/products"
+              className="text-primary-700 inline-flex items-center gap-1 text-sm font-medium hover:underline"
+            >
+              <span>Xem tất cả</span>
+            <ArrowRight size={14} />
+            </Link>
           </div>
-        </div>
-      </div>
-
-      <div className="container-app relative py-12">
-        <p className="font-mono text-xs uppercase tracking-widest text-stone-400">
-          Phase 1 · Foundation ready · Phase 2 incoming
-        </p>
-      </div>
-    </section>
+          <ProductGrid
+            products={popularProducts}
+            loading={popular.isLoading}
+            cols={4}
+          />
+        </section>
+      )}
+    </>
   );
 }

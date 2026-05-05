@@ -9,8 +9,8 @@ const KEY_ACCESS = "gm.accessToken";
 const KEY_REFRESH = "gm.refreshToken";
 const KEY_USER = "gm.user";
 
-function isBrowser() {
-  return typeof window !== "undefined";
+function isBrowser(): boolean {
+  return (globalThis as { localStorage?: Storage }).localStorage !== undefined;
 }
 
 export function getAccessToken(): string | null {
