@@ -20,7 +20,7 @@ type State =
 
 export default function PaymentResultPage() {
   return (
-    <div className="bg-racket-grid min-h-[88vh] bg-stone-50">
+    <div className="bg-soft-glow min-h-[88vh] bg-stone-50">
       <div className="container-app py-20">
         <Suspense
           fallback={

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 export default function ForbiddenPage() {
   return (
-    <div className="bg-racket-grid flex min-h-[70vh] flex-col items-center justify-center bg-stone-50 px-4 text-center">
+    <div className="bg-soft-glow flex min-h-[70vh] flex-col items-center justify-center bg-stone-50 px-4 text-center">
       <p className="font-mono text-sm tracking-widest text-stone-400 uppercase">
         403 — Forbidden
       </p>

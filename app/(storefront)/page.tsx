@@ -28,7 +28,7 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="bg-racket-grid border-b border-stone-200">
+      <section className="bg-soft-glow border-b border-stone-200">
         <div className="container-app grid items-center gap-10 py-10 md:grid-cols-[2fr_3fr] md:py-14">
           <div>
             <h1 className="font-display text-stone-900 text-5xl leading-[0.95] font-extrabold tracking-tight md:text-6xl">
@@ -84,7 +84,7 @@ export default function HomePage() {
                 href={`/categories/${c.id}`}
                 className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-stone-900 p-6 text-white transition-shadow hover:shadow-lg"
               >
-                <div className="bg-racket-grid-dark absolute inset-0 opacity-50" />
+                <div className="bg-soft-glow-dark absolute inset-0 opacity-50" />
                 <div className="relative flex h-full flex-col justify-between">
                   <div className="font-mono text-[11px] tracking-widest text-stone-400 uppercase">
                     Danh mục

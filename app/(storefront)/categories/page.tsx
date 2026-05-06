@@ -38,7 +38,7 @@ export default function CategoriesPage() {
               href={`/categories/${c.id}`}
               className="group relative overflow-hidden rounded-2xl bg-stone-900 p-8 text-white transition-shadow hover:shadow-lg"
             >
-              <div className="bg-racket-grid-dark absolute inset-0 opacity-50" />
+              <div className="bg-soft-glow-dark absolute inset-0 opacity-50" />
               <div className="relative">
                 <div className="font-mono text-[11px] tracking-widest text-stone-400 uppercase">
                   Danh mục
