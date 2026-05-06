@@ -116,7 +116,7 @@ export function useAdminLogin() {
       if (me.role === "CUSTOMER") {
         logoutLocal();
         throw new ApiException(
-          "Đây là form quản trị. Tài khoản khách hàng vui lòng đăng nhập tại trang storefront.",
+          "Đây là form quản trị. Tài khoản khách hàng vui lòng đăng nhập tại trang chủ.",
           1004,
         );
       }
