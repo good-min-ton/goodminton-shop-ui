@@ -1,13 +1,8 @@
 "use client";
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ordersApi } from "@/lib/api/orders";
 import { toast } from "@/store/toast-store";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import type { PageQuery } from "@/types/api";
 
@@ -35,8 +30,7 @@ export function useCancelMyOrder(orderId: number) {
       qc.invalidateQueries({ queryKey: ["orders", "my"] });
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Không huỷ được đơn hàng"), "error");
+      toast(getErrorMessage(err, "Không huỷ được đơn hàng"), "error");
     },
   });
 }
@@ -50,8 +44,7 @@ export function useConfirmReceived(orderId: number) {
       qc.invalidateQueries({ queryKey: ["orders", "my"] });
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code), "error");
+      toast(getErrorMessage(err), "error");
     },
   });
 }

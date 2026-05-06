@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/auth-store";
 import { useCurrentUser } from "@/hooks/use-auth";
 import { accountsApi } from "@/lib/api/accounts";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import { profileSchema, type ProfileInput } from "@/lib/validation/account";
@@ -42,8 +41,7 @@ export default function AccountProfilePage() {
       toast("Đã cập nhật hồ sơ", "success");
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Không cập nhật được hồ sơ"), "error");
+      toast(getErrorMessage(err, "Không cập nhật được hồ sơ"), "error");
     },
   });
 

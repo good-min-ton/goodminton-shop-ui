@@ -41,8 +41,7 @@ export default function StoreAdminOrderDetailPage() {
   }
 
   function handleErr(err: unknown, fallback: string) {
-    const code = err instanceof ApiException ? err.code : null;
-    toast(getErrorMessage(code, fallback), "error");
+    toast(getErrorMessage(err, fallback), "error");
   }
 
   const markPreparing = useMutation({

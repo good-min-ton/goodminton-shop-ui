@@ -13,7 +13,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useProduct } from "@/hooks/use-products";
 import { productsApi } from "@/lib/api/products";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import { formatVnd } from "@/lib/utils";
@@ -35,9 +34,8 @@ export default function AdminProductDetailPage() {
       router.replace("/admin/products");
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
       toast(
-        getErrorMessage(code, "Không xoá được — có thể có sản phẩm liên quan"),
+        getErrorMessage(err, "Không xoá được — có thể có sản phẩm liên quan"),
         "error",
       );
     },

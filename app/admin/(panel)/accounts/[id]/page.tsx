@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { accountsApi } from "@/lib/api/accounts";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import { formatDateTime } from "@/lib/utils";
@@ -45,8 +44,7 @@ export default function AdminAccountDetailPage() {
       setConfirmOpen(false);
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code), "error");
+      toast(getErrorMessage(err), "error");
     },
   });
 

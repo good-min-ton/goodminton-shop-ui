@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { sizesApi } from "@/lib/api/colors-sizes";
 import { useSizes } from "@/hooks/use-catalog";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import type { SizeOption, SizeType } from "@/types/api";
@@ -66,8 +65,7 @@ export default function AdminSizesPage() {
       closeForm();
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code), "error");
+      toast(getErrorMessage(err), "error");
     },
   });
 
@@ -79,8 +77,7 @@ export default function AdminSizesPage() {
       setDeleting(null);
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Không xoá được"), "error");
+      toast(getErrorMessage(err, "Không xoá được"), "error");
     },
   });
 

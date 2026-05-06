@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { authApi } from "@/lib/api/auth";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import {
@@ -42,9 +41,8 @@ function ResetPasswordContent() {
       router.replace("/login");
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
       toast(
-        getErrorMessage(code, "Không đặt lại được mật khẩu, link có thể đã hết hạn"),
+        getErrorMessage(err, "Không đặt lại được mật khẩu, link có thể đã hết hạn"),
         "error",
       );
     },

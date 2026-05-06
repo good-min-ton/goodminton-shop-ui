@@ -9,7 +9,6 @@ import { CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { authApi } from "@/lib/api/auth";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import {
@@ -35,8 +34,7 @@ export default function ForgotPasswordPage() {
       setSubmittedEmail(email);
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Không gửi được email reset"), "error");
+      toast(getErrorMessage(err, "Không gửi được email reset"), "error");
     },
   });
 

@@ -15,7 +15,6 @@ import { useAuthStore } from "@/store/auth-store";
 import { toast } from "@/store/toast-store";
 import { ordersApi } from "@/lib/api/orders";
 import { vnpayApi } from "@/lib/api/vnpay";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { formatVnd, cn } from "@/lib/utils";
 import {
@@ -124,8 +123,7 @@ function CheckoutContent() {
       }
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Đặt hàng thất bại"), "error");
+      toast(getErrorMessage(err, "Đặt hàng thất bại"), "error");
     },
   });
 

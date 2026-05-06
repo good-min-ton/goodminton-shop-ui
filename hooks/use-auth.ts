@@ -58,8 +58,7 @@ export function useLogin() {
       toast(`Chào mừng trở lại, ${me.fullName}!`, "success");
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Đăng nhập thất bại"), "error");
+      toast(getErrorMessage(err, "Đăng nhập thất bại"), "error");
     },
   });
 }
@@ -87,8 +86,7 @@ export function useRegister() {
       toast("Đăng ký thành công. Chào mừng đến Goodminton!", "success");
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Đăng ký thất bại"), "error");
+      toast(getErrorMessage(err, "Đăng ký thất bại"), "error");
     },
   });
 }
@@ -124,8 +122,7 @@ export function useAdminLogin() {
       toast(`Chào mừng, ${me.fullName}!`, "success");
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Đăng nhập thất bại"), "error");
+      toast(getErrorMessage(err, "Đăng nhập thất bại"), "error");
     },
   });
 }

@@ -9,7 +9,6 @@ import { AdminCard } from "@/components/admin/admin-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { accountsApi } from "@/lib/api/accounts";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
@@ -44,8 +43,7 @@ export default function CreateStoreAdminPage() {
       router.replace("/admin/accounts");
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Không tạo được tài khoản"), "error");
+      toast(getErrorMessage(err, "Không tạo được tài khoản"), "error");
     },
   });
 

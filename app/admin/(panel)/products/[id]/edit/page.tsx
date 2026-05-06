@@ -8,7 +8,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useProduct } from "@/hooks/use-products";
 import { productsApi } from "@/lib/api/products";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import type { ProductFormInput } from "@/lib/validation/product";
@@ -33,8 +32,7 @@ export default function EditProductPage() {
       router.replace(`/admin/products/${p.productId}`);
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Không cập nhật được sản phẩm"), "error");
+      toast(getErrorMessage(err, "Không cập nhật được sản phẩm"), "error");
     },
   });
 

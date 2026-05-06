@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { brandsApi } from "@/lib/api/brands";
 import { useBrands } from "@/hooks/use-catalog";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import type { Brand } from "@/types/api";
@@ -62,8 +61,7 @@ export default function AdminBrandsPage() {
       closeForm();
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code), "error");
+      toast(getErrorMessage(err), "error");
     },
   });
 
@@ -75,8 +73,7 @@ export default function AdminBrandsPage() {
       setDeleting(null);
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Không xoá được"), "error");
+      toast(getErrorMessage(err, "Không xoá được"), "error");
     },
   });
 

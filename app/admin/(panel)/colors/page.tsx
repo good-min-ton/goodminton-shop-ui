@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { colorsApi } from "@/lib/api/colors-sizes";
 import { useColors } from "@/hooks/use-catalog";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import type { Color } from "@/types/api";
@@ -62,8 +61,7 @@ export default function AdminColorsPage() {
       closeForm();
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code), "error");
+      toast(getErrorMessage(err), "error");
     },
   });
 
@@ -75,8 +73,7 @@ export default function AdminColorsPage() {
       setDeleting(null);
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Không xoá được"), "error");
+      toast(getErrorMessage(err, "Không xoá được"), "error");
     },
   });
 

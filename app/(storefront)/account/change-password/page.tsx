@@ -6,7 +6,6 @@ import { useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { accountsApi } from "@/lib/api/accounts";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import {
@@ -37,8 +36,7 @@ export default function ChangePasswordPage() {
       reset();
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Không đổi được mật khẩu"), "error");
+      toast(getErrorMessage(err, "Không đổi được mật khẩu"), "error");
     },
   });
 

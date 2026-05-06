@@ -5,7 +5,6 @@ import { useMutation } from "@tanstack/react-query";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { ProductForm } from "@/components/admin/product-form";
 import { productsApi } from "@/lib/api/products";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import type { ProductFormInput } from "@/lib/validation/product";
@@ -26,8 +25,7 @@ export default function CreateProductPage() {
       router.replace(`/admin/products/${p.productId}`);
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Không tạo được sản phẩm"), "error");
+      toast(getErrorMessage(err, "Không tạo được sản phẩm"), "error");
     },
   });
 

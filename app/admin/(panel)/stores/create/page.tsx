@@ -11,7 +11,6 @@ import { Input, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { storesApi } from "@/lib/api/stores";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 
@@ -56,8 +55,7 @@ export default function CreateStorePage() {
       router.replace("/admin/stores");
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Không tạo được chi nhánh"), "error");
+      toast(getErrorMessage(err, "Không tạo được chi nhánh"), "error");
     },
   });
 

@@ -12,7 +12,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useProduct } from "@/hooks/use-products";
 import { productsApi } from "@/lib/api/products";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 
@@ -40,8 +39,7 @@ export default function VariantImagesPage() {
       setPickedPreview(null);
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Không upload được"), "error");
+      toast(getErrorMessage(err, "Không upload được"), "error");
     },
   });
 
@@ -53,8 +51,7 @@ export default function VariantImagesPage() {
       setDeletingId(null);
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code), "error");
+      toast(getErrorMessage(err), "error");
     },
   });
 

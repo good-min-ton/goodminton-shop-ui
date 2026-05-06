@@ -12,7 +12,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useMyOrder } from "@/hooks/use-orders";
 import { productsApi } from "@/lib/api/products";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import { cn } from "@/lib/utils";
@@ -52,8 +51,7 @@ function WriteReviewContent() {
       router.replace(`/orders/${orderId}`);
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code, "Không gửi được đánh giá"), "error");
+      toast(getErrorMessage(err, "Không gửi được đánh giá"), "error");
     },
   });
 

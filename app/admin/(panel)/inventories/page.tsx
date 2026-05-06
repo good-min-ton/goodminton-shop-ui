@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { storesApi } from "@/lib/api/stores";
 import { inventoriesApi } from "@/lib/api/inventories";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import type { Inventory } from "@/types/api";
@@ -54,8 +53,7 @@ export default function AdminInventoriesPage() {
       setEditing(null);
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code), "error");
+      toast(getErrorMessage(err), "error");
     },
   });
 

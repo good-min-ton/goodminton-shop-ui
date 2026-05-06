@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { storesApi } from "@/lib/api/stores";
-import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import { formatDateTime } from "@/lib/utils";
@@ -49,8 +48,7 @@ export default function AdminStoreDetailPage() {
       setPickedAdminId("");
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
-      toast(getErrorMessage(code), "error");
+      toast(getErrorMessage(err), "error");
     },
   });
 
@@ -61,9 +59,8 @@ export default function AdminStoreDetailPage() {
       router.replace("/admin/stores");
     },
     onError: (err) => {
-      const code = err instanceof ApiException ? err.code : null;
       toast(
-        getErrorMessage(code, "Không xoá được — chi nhánh có thể còn inventory"),
+        getErrorMessage(err, "Không xoá được — chi nhánh có thể còn inventory"),
         "error",
       );
     },
