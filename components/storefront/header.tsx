@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShoppingBag, User, LogOut, Menu, X } from "lucide-react";
+import { Heart, ShoppingBag, User, LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./logo";
 import { HeaderSearch } from "./header-search";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
+import { useWishlistStore } from "@/store/wishlist-store";
 import { useAuthStore } from "@/store/auth-store";
 import { useLogout } from "@/hooks/use-auth";
 
@@ -22,6 +23,7 @@ const NAV_LINKS = [
 export function StorefrontHeader() {
   const pathname = usePathname();
   const totalItems = useCartStore((s) => s.totalItems());
+  const wishlistCount = useWishlistStore((s) => s.items.length);
   const user = useAuthStore((s) => s.user);
   const isHydrated = useAuthStore((s) => s.isHydrated);
   const logout = useLogout();
@@ -58,6 +60,19 @@ export function StorefrontHeader() {
 
         <div className="ml-auto flex items-center gap-1 md:ml-0">
           <HeaderSearch />
+
+          <Link
+            href="/wishlist"
+            className="relative rounded-lg p-2 text-stone-700 hover:bg-stone-100 hover:text-red-500"
+            aria-label="Danh sách yêu thích"
+          >
+            <Heart size={20} />
+            {isHydrated && wishlistCount > 0 && (
+              <span className="font-mono absolute -top-0.5 -right-0.5 inline-flex min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-medium text-white">
+                {wishlistCount > 99 ? "99+" : wishlistCount}
+              </span>
+            )}
+          </Link>
 
           <Link
             href="/cart"

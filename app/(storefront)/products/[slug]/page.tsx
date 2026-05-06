@@ -1,11 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronRight, Minus, Plus, ShieldCheck, Truck, RotateCcw } from "lucide-react";
+import {
+  ChevronRight,
+  Heart,
+  Minus,
+  Plus,
+  ShieldCheck,
+  Truck,
+  RotateCcw,
+} from "lucide-react";
 import { useProductBySlug } from "@/hooks/use-product-by-slug";
 import {
+  getDisplayPrice,
   useProductRecommendations,
   useProductReviews,
 } from "@/hooks/use-products";
@@ -14,9 +23,12 @@ import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProductGallery } from "@/components/storefront/product-gallery";
 import { VariantSelector } from "@/components/storefront/variant-selector";
+import { RecentlyViewedSection } from "@/components/storefront/recently-viewed-section";
 import { useCartStore } from "@/store/cart-store";
+import { useWishlistStore } from "@/store/wishlist-store";
+import { useRecentlyViewedStore } from "@/store/recently-viewed-store";
 import { toast } from "@/store/toast-store";
-import { formatVnd, formatDateTime, clamp } from "@/lib/utils";
+import { cn, formatVnd, formatDateTime, clamp } from "@/lib/utils";
 
 export default function ProductDetailPage() {
   const params = useParams<{ slug: string }>();
@@ -55,6 +67,41 @@ export default function ProductDetailPage() {
 
   const addItem = useCartStore((s) => s.addItem);
   const openCart = useCartStore((s) => s.open);
+  const toggleWishlist = useWishlistStore((s) => s.toggle);
+  const isWished = useWishlistStore((s) =>
+    product ? s.has(product.productId) : false,
+  );
+  const trackView = useRecentlyViewedStore((s) => s.track);
+
+  useEffect(() => {
+    if (!product) return;
+    const { price, salePrice } = getDisplayPrice(product);
+    trackView({
+      productId: product.productId,
+      slug: product.slug,
+      name: product.name,
+      brandName: product.brand.name,
+      thumbnailUrl: product.thumbnail?.url ?? null,
+      displayPrice: salePrice ?? price,
+    });
+  }, [product, trackView]);
+
+  function handleToggleWishlist() {
+    if (!product) return;
+    const { price, salePrice } = getDisplayPrice(product);
+    toggleWishlist({
+      productId: product.productId,
+      slug: product.slug,
+      name: product.name,
+      brandName: product.brand.name,
+      thumbnailUrl: product.thumbnail?.url ?? null,
+      displayPrice: salePrice ?? price,
+    });
+    toast(
+      isWished ? "Đã bỏ khỏi yêu thích" : "Đã lưu vào yêu thích",
+      "success",
+    );
+  }
 
   function handleAddToCart() {
     if (!product || !variant) return;
@@ -194,7 +241,7 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          <div className="mt-7 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-wrap items-stretch gap-3">
             <Button
               size="lg"
               uppercase
@@ -204,6 +251,20 @@ export default function ProductDetailPage() {
             >
               Thêm vào giỏ
             </Button>
+            <button
+              type="button"
+              onClick={handleToggleWishlist}
+              aria-label={isWished ? "Bỏ yêu thích" : "Lưu yêu thích"}
+              aria-pressed={isWished}
+              className={cn(
+                "inline-flex items-center justify-center rounded-lg border-[1.5px] px-4 transition-colors",
+                isWished
+                  ? "border-red-200 bg-red-50 text-red-500"
+                  : "border-stone-200 text-stone-600 hover:border-red-200 hover:bg-red-50 hover:text-red-500",
+              )}
+            >
+              <Heart size={18} fill={isWished ? "currentColor" : "none"} />
+            </button>
             <Button
               size="lg"
               variant="secondary"
@@ -358,6 +419,11 @@ export default function ProductDetailPage() {
           </div>
         </section>
       )}
+
+      <RecentlyViewedSection
+        excludeProductId={product.productId}
+        className="mt-16"
+      />
     </div>
   );
 }

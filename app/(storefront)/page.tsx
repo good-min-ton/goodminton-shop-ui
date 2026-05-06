@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductGrid } from "@/components/storefront/product-grid";
+import { RecentlyViewedSection } from "@/components/storefront/recently-viewed-section";
 import { useProductList } from "@/hooks/use-products";
 import { useCategories } from "@/hooks/use-catalog";
 
@@ -126,6 +127,8 @@ export default function HomePage() {
         />
       </section>
 
+      <RecentlyViewedSection className="container-app py-12" />
+
       {popularProducts.length > 0 && (
         <section className="container-app py-12">
           <div className="mb-6 flex items-end justify-between">
@@ -137,7 +140,7 @@ export default function HomePage() {
               className="text-primary-700 inline-flex items-center gap-1 text-sm font-medium hover:underline"
             >
               <span>Xem tất cả</span>
-            <ArrowRight size={14} />
+              <ArrowRight size={14} />
             </Link>
           </div>
           <ProductGrid

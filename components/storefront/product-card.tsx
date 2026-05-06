@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag } from "lucide-react";
+import { Heart, ShoppingBag } from "lucide-react";
 import type { Product } from "@/types/api";
-import { formatVnd } from "@/lib/utils";
+import { cn, formatVnd } from "@/lib/utils";
 import { getDisplayPrice } from "@/hooks/use-products";
 import { useCartStore } from "@/store/cart-store";
+import { useWishlistStore } from "@/store/wishlist-store";
 import { toast } from "@/store/toast-store";
 
 interface ProductCardProps {
@@ -15,9 +16,12 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: Readonly<ProductCardProps>) {
   const addItem = useCartStore((s) => s.addItem);
-  const open = useCartStore((s) => s.open);
+  const openCart = useCartStore((s) => s.open);
+  const toggleWishlist = useWishlistStore((s) => s.toggle);
+  const isWished = useWishlistStore((s) => s.has(product.productId));
   const { price, salePrice } = getDisplayPrice(product);
   const onSale = salePrice != null && salePrice < price;
+  const display = onSale && salePrice != null ? salePrice : price;
   const href = `/products/${product.slug}`;
 
   const distinctColors = Array.from(
@@ -49,8 +53,25 @@ export function ProductCard({ product }: Readonly<ProductCardProps>) {
       salePrice: v.salePrice,
       quantity: 1,
     });
-    open();
+    openCart();
     toast("Đã thêm vào giỏ hàng", "success");
+  }
+
+  function handleToggleWishlist(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist({
+      productId: product.productId,
+      slug: product.slug,
+      name: product.name,
+      brandName: product.brand.name,
+      thumbnailUrl: product.thumbnail?.url ?? null,
+      displayPrice: display,
+    });
+    toast(
+      isWished ? "Đã bỏ khỏi danh sách yêu thích" : "Đã lưu vào yêu thích",
+      "success",
+    );
   }
 
   return (
@@ -81,6 +102,21 @@ export function ProductCard({ product }: Readonly<ProductCardProps>) {
 
         <button
           type="button"
+          onClick={handleToggleWishlist}
+          aria-label={isWished ? "Bỏ yêu thích" : "Lưu yêu thích"}
+          aria-pressed={isWished}
+          className={cn(
+            "absolute top-3 right-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-sm transition-colors",
+            isWished
+              ? "text-red-500 hover:bg-white"
+              : "text-stone-400 hover:text-red-500 hover:bg-white",
+          )}
+        >
+          <Heart size={16} fill={isWished ? "currentColor" : "none"} />
+        </button>
+
+        <button
+          type="button"
           onClick={handleQuickAdd}
           className="font-display absolute right-3 bottom-3 left-3 translate-y-2 rounded-lg bg-stone-900 py-2.5 text-[13px] font-bold tracking-wider text-white uppercase opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100"
         >
@@ -97,7 +133,7 @@ export function ProductCard({ product }: Readonly<ProductCardProps>) {
         <div className="mt-auto pt-3">
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-[17px] font-medium text-primary-700">
-              {formatVnd(onSale ? salePrice : price)}
+              {formatVnd(display)}
             </span>
             {onSale && (
               <span className="font-mono text-[13px] text-stone-400 line-through">

@@ -63,7 +63,7 @@ export function StorefrontFooter() {
       <div className="border-t border-stone-800">
         <div className="container-app flex flex-col items-start justify-between gap-2 py-6 text-xs text-stone-500 md:flex-row md:items-center">
           <p>© {new Date().getFullYear()} Goodminton Shop. All rights reserved.</p>
-          <p>Made for badminton players.</p>
+          <p>Made for badminton community</p>
         </div>
       </div>
     </footer>
