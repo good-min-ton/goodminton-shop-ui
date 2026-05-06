@@ -93,6 +93,43 @@ export function useRegister() {
   });
 }
 
+export function useAdminLogin() {
+  const setSession = useAuthStore((s) => s.setSession);
+  const logoutLocal = useAuthStore((s) => s.logout);
+  const router = useRouter();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: LoginRequest) => {
+      const tokens = await authApi.login({
+        identifier: input.identifier,
+        password: input.password,
+      });
+      setSession(tokens);
+      const me = await accountsApi.myInfo();
+      if (me.role === "CUSTOMER") {
+        logoutLocal();
+        throw new ApiException("Tài khoản này không có quyền quản trị", 1004);
+      }
+      setSession(tokens, me);
+      return me;
+    },
+    onSuccess: (me) => {
+      qc.setQueryData(QK_ME, me);
+      const target =
+        me.role === "SUPER_ADMIN"
+          ? "/admin/dashboard"
+          : "/store-admin/dashboard";
+      router.replace(target);
+      toast(`Chào mừng, ${me.fullName}!`, "success");
+    },
+    onError: (err) => {
+      const code = err instanceof ApiException ? err.code : null;
+      toast(getErrorMessage(code, "Đăng nhập thất bại"), "error");
+    },
+  });
+}
+
 export function useLogout() {
   const refreshToken = useAuthStore((s) => s.refreshToken);
   const logout = useAuthStore((s) => s.logout);

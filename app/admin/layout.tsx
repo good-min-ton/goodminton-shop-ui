@@ -1,12 +1,12 @@
-export default function AdminLayout({
+export default function AdminRootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div
-      className="bg-admin-bg text-admin-text bg-soft-glow-dark min-h-screen"
+      className="bg-admin-bg text-admin-text min-h-screen"
       data-theme="admin"
     >
-      <div className="container-app py-12">{children}</div>
+      {children}
     </div>
   );
 }
