@@ -37,6 +37,7 @@ export function useCurrentUser() {
 
 export function useLogin() {
   const setSession = useAuthStore((s) => s.setSession);
+  const logoutLocal = useAuthStore((s) => s.logout);
   const router = useRouter();
   const qc = useQueryClient();
 
@@ -48,6 +49,13 @@ export function useLogin() {
       });
       setSession(tokens);
       const me = await accountsApi.myInfo();
+      if (me.role !== "CUSTOMER") {
+        logoutLocal();
+        throw new ApiException(
+          "Đây là form khách hàng. Tài khoản quản trị vui lòng đăng nhập tại trang quản trị.",
+          1004,
+        );
+      }
       setSession(tokens, me);
       return { me, redirectTo: input.redirectTo };
     },
@@ -107,7 +115,10 @@ export function useAdminLogin() {
       const me = await accountsApi.myInfo();
       if (me.role === "CUSTOMER") {
         logoutLocal();
-        throw new ApiException("Tài khoản này không có quyền quản trị", 1004);
+        throw new ApiException(
+          "Đây là form quản trị. Tài khoản khách hàng vui lòng đăng nhập tại trang storefront.",
+          1004,
+        );
       }
       setSession(tokens, me);
       return me;

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Barlow_Condensed, DM_Sans, DM_Mono } from "next/font/google";
+import { Bricolage_Grotesque, DM_Sans, DM_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers/providers";
 
-const fontDisplay = Barlow_Condensed({
+const fontDisplay = Bricolage_Grotesque({
   variable: "--font-display-family",
-  subsets: ["latin", "vietnamese"],
-  weight: ["400", "600", "700", "800"],
+  subsets: ["latin", "latin-ext", "vietnamese"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 

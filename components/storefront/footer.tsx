@@ -5,10 +5,10 @@ const COLUMNS = [
   {
     heading: "Mua sắm",
     links: [
-      { href: "/products?categoryId=1", label: "Vợt cầu lông" },
-      { href: "/products?categoryId=2", label: "Giày" },
-      { href: "/products?categoryId=3", label: "Áo cầu lông" },
-      { href: "/products?categoryId=4", label: "Phụ kiện" },
+      { href: "/products", label: "Tất cả sản phẩm" },
+      { href: "/categories", label: "Danh mục" },
+      { href: "/wishlist", label: "Yêu thích" },
+      { href: "/news", label: "Tin tức" },
     ],
   },
   {
@@ -16,15 +16,16 @@ const COLUMNS = [
     links: [
       { href: "/orders", label: "Đơn hàng của tôi" },
       { href: "/account", label: "Tài khoản" },
+      { href: "/contact", label: "Liên hệ" },
       { href: "/forgot-password", label: "Quên mật khẩu" },
     ],
   },
   {
     heading: "Goodminton",
     links: [
-      { href: "/", label: "Về chúng tôi" },
-      { href: "/", label: "Hệ thống cửa hàng" },
-      { href: "/", label: "Chính sách đổi trả" },
+      { href: "/about", label: "Giới thiệu" },
+      { href: "/contact", label: "Hệ thống cửa hàng" },
+      { href: "/about", label: "Chính sách đổi trả" },
     ],
   },
 ];
@@ -47,7 +48,7 @@ export function StorefrontFooter() {
             </h3>
             <ul className="mt-4 space-y-2">
               {col.links.map((link) => (
-                <li key={link.label}>
+                <li key={`${col.heading}-${link.label}`}>
                   <Link
                     href={link.href}
                     className="text-sm text-stone-400 hover:text-white"
@@ -62,8 +63,10 @@ export function StorefrontFooter() {
       </div>
       <div className="border-t border-stone-800">
         <div className="container-app flex flex-col items-start justify-between gap-2 py-6 text-xs text-stone-500 md:flex-row md:items-center">
-          <p>© {new Date().getFullYear()} Goodminton Shop. All rights reserved.</p>
-          <p>Made for badminton community</p>
+          <p>
+            © {new Date().getFullYear()} Goodminton Shop. All rights reserved.
+          </p>
+          <p>Made for badminton community.</p>
         </div>
       </div>
     </footer>

@@ -8,6 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { RedirectIfAuthed } from "@/components/auth/redirect-if-authed";
 import { authApi } from "@/lib/api/auth";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
@@ -17,6 +18,14 @@ import {
 } from "@/lib/validation/auth";
 
 export default function ForgotPasswordPage() {
+  return (
+    <RedirectIfAuthed>
+      <ForgotPasswordContent />
+    </RedirectIfAuthed>
+  );
+}
+
+function ForgotPasswordContent() {
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
 
   const {

@@ -6,10 +6,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/storefront/logo";
 import { Button } from "@/components/ui/button";
+import { RedirectIfAuthed } from "@/components/auth/redirect-if-authed";
 import { useAdminLogin } from "@/hooks/use-auth";
 import { loginSchema, type LoginInput } from "@/lib/validation/auth";
 
 export default function AdminLoginPage() {
+  return (
+    <RedirectIfAuthed>
+      <AdminLoginContent />
+    </RedirectIfAuthed>
+  );
+}
+
+function AdminLoginContent() {
   const login = useAdminLogin();
 
   const {

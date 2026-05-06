@@ -2,22 +2,31 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Heart, ShoppingBag, User, LogOut, Menu, X } from "lucide-react";
+import {
+  ChevronDown,
+  Heart,
+  ShoppingBag,
+  User,
+  LogOut,
+  Menu,
+  X,
+} from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./logo";
 import { HeaderSearch } from "./header-search";
+import { CategoriesDropdown } from "./categories-dropdown";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { useWishlistStore } from "@/store/wishlist-store";
 import { useAuthStore } from "@/store/auth-store";
+import { useBrands, useCategories } from "@/hooks/use-catalog";
 import { useLogout } from "@/hooks/use-auth";
 
-const NAV_LINKS = [
-  { href: "/products?categoryId=1", label: "Vợt" },
-  { href: "/products?categoryId=2", label: "Giày" },
-  { href: "/products?categoryId=3", label: "Áo" },
-  { href: "/products?categoryId=4", label: "Phụ kiện" },
-  { href: "/products", label: "Tất cả" },
+const STATIC_NAV = [
+  { href: "/", label: "Trang chủ" },
+  { href: "/news", label: "Tin tức" },
+  { href: "/about", label: "Giới thiệu" },
+  { href: "/contact", label: "Liên hệ" },
 ];
 
 export function StorefrontHeader() {
@@ -30,14 +39,35 @@ export function StorefrontHeader() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const productsActive =
+    pathname.startsWith("/products") ||
+    pathname.startsWith("/categories") ||
+    pathname.startsWith("/brands");
+
   return (
     <header className="sticky top-0 z-40 border-b border-stone-200 bg-white/95 backdrop-blur-sm">
-      <div className="container-app flex h-[72px] items-center gap-6">
+      <div className="container-app flex h-[72px] items-center gap-4">
         <Logo size="md" priority />
 
         <nav className="hidden flex-1 items-center justify-center md:flex">
-          <ul className="flex items-center gap-1">
-            {NAV_LINKS.map((item) => {
+          <ul className="flex items-center gap-0.5">
+            <li>
+              <Link
+                href="/"
+                className={cn(
+                  "rounded-lg px-4 py-2 text-[15px] font-medium transition-colors",
+                  pathname === "/"
+                    ? "bg-stone-100 text-primary-700"
+                    : "text-stone-700 hover:bg-stone-50 hover:text-primary-700",
+                )}
+              >
+                Trang chủ
+              </Link>
+            </li>
+            <li>
+              <CategoriesDropdown active={productsActive} />
+            </li>
+            {STATIC_NAV.filter((n) => n.href !== "/").map((item) => {
               const active = pathname === item.href;
               return (
                 <li key={item.href}>
@@ -181,33 +211,146 @@ export function StorefrontHeader() {
       </div>
 
       {mobileOpen && (
-        <nav className="border-t border-stone-200 bg-white md:hidden">
-          <ul className="container-app flex flex-col py-2">
-            {NAV_LINKS.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="block rounded-lg px-4 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-            {!user && (
-              <li className="mt-2 border-t border-stone-100 pt-2">
-                <Link
-                  href="/login"
-                  onClick={() => setMobileOpen(false)}
-                  className="block rounded-lg px-4 py-3 text-sm font-medium text-primary-700 hover:bg-stone-50"
-                >
-                  Đăng nhập
-                </Link>
-              </li>
-            )}
-          </ul>
-        </nav>
+        <MobileNav
+          pathname={pathname ?? "/"}
+          isLoggedIn={!!(isHydrated && user)}
+          onClose={() => setMobileOpen(false)}
+        />
       )}
     </header>
+  );
+}
+
+interface MobileNavProps {
+  pathname: string;
+  isLoggedIn: boolean;
+  onClose: () => void;
+}
+
+function MobileNav({ pathname, isLoggedIn, onClose }: Readonly<MobileNavProps>) {
+  const [productsExpanded, setProductsExpanded] = useState(true);
+  const categories = useCategories();
+  const brands = useBrands();
+
+  return (
+    <nav className="border-t border-stone-200 bg-white md:hidden">
+      <ul className="container-app flex flex-col py-2">
+        <MobileNavLink href="/" pathname={pathname} onClose={onClose}>
+          Trang chủ
+        </MobileNavLink>
+
+        <li>
+          <button
+            type="button"
+            onClick={() => setProductsExpanded((v) => !v)}
+            className="flex w-full items-center justify-between rounded-lg px-4 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            aria-expanded={productsExpanded}
+          >
+            <span>Sản phẩm</span>
+            <ChevronDown
+              size={14}
+              className={cn(
+                "transition-transform",
+                productsExpanded ? "rotate-180" : "rotate-0",
+              )}
+            />
+          </button>
+          {productsExpanded && (
+            <div className="ml-3 border-l border-stone-100 pl-3 pb-2">
+              <Link
+                href="/products"
+                onClick={onClose}
+                className="text-primary-700 block rounded-md px-3 py-2 text-sm font-medium hover:bg-stone-50"
+              >
+                Tất cả sản phẩm →
+              </Link>
+              {(categories.data ?? []).slice(0, 8).map((c) => (
+                <Link
+                  key={c.id}
+                  href={`/categories/${c.id}`}
+                  onClick={onClose}
+                  className="block rounded-md px-3 py-2 text-sm text-stone-700 hover:bg-stone-50"
+                >
+                  {c.name}
+                </Link>
+              ))}
+              {(brands.data?.length ?? 0) > 0 && (
+                <>
+                  <p className="mt-2 px-3 text-[10px] font-semibold tracking-wider text-stone-400 uppercase">
+                    Thương hiệu
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 px-3 pt-1.5 pb-2">
+                    {(brands.data ?? []).slice(0, 8).map((b) => (
+                      <Link
+                        key={b.id}
+                        href={`/brands/${b.id}`}
+                        onClick={onClose}
+                        className="rounded-md border border-stone-200 px-2.5 py-1 text-xs text-stone-700 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700"
+                      >
+                        {b.name}
+                      </Link>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </li>
+
+        <MobileNavLink href="/news" pathname={pathname} onClose={onClose}>
+          Tin tức
+        </MobileNavLink>
+        <MobileNavLink href="/about" pathname={pathname} onClose={onClose}>
+          Giới thiệu
+        </MobileNavLink>
+        <MobileNavLink href="/contact" pathname={pathname} onClose={onClose}>
+          Liên hệ
+        </MobileNavLink>
+
+        {!isLoggedIn && (
+          <li className="mt-2 border-t border-stone-100 pt-2">
+            <Link
+              href="/login"
+              onClick={onClose}
+              className="text-primary-700 block rounded-lg px-4 py-3 text-sm font-medium hover:bg-stone-50"
+            >
+              Đăng nhập
+            </Link>
+          </li>
+        )}
+      </ul>
+    </nav>
+  );
+}
+
+interface MobileNavLinkProps {
+  href: string;
+  pathname: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}
+
+function MobileNavLink({
+  href,
+  pathname,
+  onClose,
+  children,
+}: Readonly<MobileNavLinkProps>) {
+  const active = pathname === href;
+  return (
+    <li>
+      <Link
+        href={href}
+        onClick={onClose}
+        className={cn(
+          "block rounded-lg px-4 py-3 text-sm font-medium",
+          active
+            ? "bg-stone-100 text-primary-700"
+            : "text-stone-700 hover:bg-stone-50",
+        )}
+      >
+        {children}
+      </Link>
+    </li>
   );
 }

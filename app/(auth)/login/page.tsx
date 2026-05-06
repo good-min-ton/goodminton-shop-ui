@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { RedirectIfAuthed } from "@/components/auth/redirect-if-authed";
 import { useLogin } from "@/hooks/use-auth";
 import { loginSchema, type LoginInput } from "@/lib/validation/auth";
 
@@ -68,33 +69,35 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="rounded-2xl bg-white p-8 shadow-sm">
-      <h1 className="font-display mb-2 text-3xl font-extrabold text-stone-900">
-        Đăng nhập
-      </h1>
-      <p className="mb-7 text-sm text-stone-500">
-        Chào mừng trở lại Goodminton.
-      </p>
+    <RedirectIfAuthed>
+      <div className="rounded-2xl bg-white p-8 shadow-sm">
+        <h1 className="font-display mb-2 text-3xl font-extrabold text-stone-900">
+          Đăng nhập
+        </h1>
+        <p className="mb-7 text-sm text-stone-500">
+          Chào mừng trở lại Goodminton.
+        </p>
 
-      <Suspense
-        fallback={
-          <div className="flex justify-center py-6">
-            <Spinner className="text-primary-700" />
-          </div>
-        }
-      >
-        <LoginForm />
-      </Suspense>
-
-      <p className="mt-6 text-center text-sm text-stone-500">
-        <span>Chưa có tài khoản?</span>{" "}
-        <Link
-          href="/register"
-          className="text-primary-700 font-medium hover:underline"
+        <Suspense
+          fallback={
+            <div className="flex justify-center py-6">
+              <Spinner className="text-primary-700" />
+            </div>
+          }
         >
-          Đăng ký ngay
-        </Link>
-      </p>
-    </div>
+          <LoginForm />
+        </Suspense>
+
+        <p className="mt-6 text-center text-sm text-stone-500">
+          <span>Chưa có tài khoản?</span>{" "}
+          <Link
+            href="/register"
+            className="text-primary-700 font-medium hover:underline"
+          >
+            Đăng ký ngay
+          </Link>
+        </p>
+      </div>
+    </RedirectIfAuthed>
   );
 }

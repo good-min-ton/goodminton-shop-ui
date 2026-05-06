@@ -5,10 +5,19 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { RedirectIfAuthed } from "@/components/auth/redirect-if-authed";
 import { useRegister } from "@/hooks/use-auth";
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
 
 export default function RegisterPage() {
+  return (
+    <RedirectIfAuthed>
+      <RegisterContent />
+    </RedirectIfAuthed>
+  );
+}
+
+function RegisterContent() {
   const registerMutation = useRegister();
   const {
     register,

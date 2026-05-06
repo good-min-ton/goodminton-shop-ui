@@ -6,9 +6,9 @@ export default function StorefrontLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="flex min-h-full flex-col bg-bg">
+    <div className="bg-bg flex min-h-screen flex-col">
       <StorefrontHeader />
-      <main className="flex-1">{children}</main>
+      <main className="flex flex-1 flex-col">{children}</main>
       <StorefrontFooter />
       <CartSidebar />
     </div>
