@@ -10,6 +10,7 @@ import {
   OrderStatusBadge,
   PaymentStatusBadge,
 } from "@/components/storefront/order/order-status-badge";
+import { OrderTimeline } from "@/components/storefront/order/order-timeline";
 import { Modal } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -244,7 +245,11 @@ export default function StoreAdminOrderDetailPage() {
             <h2 className="font-display text-admin-text-muted mb-3 text-[11px] font-bold tracking-widest uppercase">
               Quy trình xử lý
             </h2>
-            <FlowSteps current={o.status} />
+            <OrderTimeline
+              current={o.status}
+              theme="dark"
+              layout="vertical"
+            />
           </AdminCard>
         </div>
       </div>
@@ -334,49 +339,6 @@ function ActionButtons({
     );
   }
   return null;
-}
-
-const STEPS = [
-  { key: "CONFIRMED", label: "Đã xác nhận" },
-  { key: "PREPARING", label: "Đang chuẩn bị" },
-  { key: "SHIPPING", label: "Đang giao" },
-  { key: "DELIVERED", label: "Đã giao" },
-  { key: "COMPLETED", label: "Hoàn thành" },
-];
-
-function FlowSteps({ current }: Readonly<{ current: string }>) {
-  const currentIdx = STEPS.findIndex((s) => s.key === current);
-
-  return (
-    <ol className="space-y-2">
-      {STEPS.map((step, idx) => {
-        const done = idx < currentIdx;
-        const active = idx === currentIdx;
-        let circleCls: string;
-        let textCls: string;
-        if (done) {
-          circleCls = "bg-emerald-500/20 text-emerald-400";
-          textCls = "text-admin-text-muted";
-        } else if (active) {
-          circleCls = "bg-amber-400 text-stone-900";
-          textCls = "text-admin-text font-medium";
-        } else {
-          circleCls = "bg-admin-surface-2 text-admin-text-muted";
-          textCls = "text-admin-text-muted";
-        }
-        return (
-          <li key={step.key} className="flex items-center gap-3 text-sm">
-            <span
-              className={`font-mono inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-medium ${circleCls}`}
-            >
-              {done ? "✓" : idx + 1}
-            </span>
-            <span className={textCls}>{step.label}</span>
-          </li>
-        );
-      })}
-    </ol>
-  );
 }
 
 interface RowProps {

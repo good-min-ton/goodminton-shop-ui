@@ -9,6 +9,7 @@ import {
   OrderStatusBadge,
   PaymentStatusBadge,
 } from "@/components/storefront/order/order-status-badge";
+import { OrderTimeline } from "@/components/storefront/order/order-timeline";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
@@ -83,7 +84,7 @@ function OrderDetailContent() {
         <span className="font-mono text-stone-700">#{order.orderId}</span>
       </nav>
 
-      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-stone-900 text-3xl font-extrabold tracking-tight">
             Đơn hàng #{order.orderId}
@@ -93,6 +94,10 @@ function OrderDetailContent() {
           </p>
         </div>
         <OrderStatusBadge status={order.status} className="text-sm" />
+      </div>
+
+      <div className="mb-8 rounded-xl border border-stone-200 bg-white px-5 py-6">
+        <OrderTimeline current={order.status} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">

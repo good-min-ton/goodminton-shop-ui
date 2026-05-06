@@ -12,6 +12,7 @@ import { Input, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart-store";
 import { useAuthStore } from "@/store/auth-store";
+import { useAddressStore } from "@/store/address-store";
 import { toast } from "@/store/toast-store";
 import { ordersApi } from "@/lib/api/orders";
 import { vnpayApi } from "@/lib/api/vnpay";
@@ -63,6 +64,8 @@ function CheckoutContent() {
   const subtotal = useCartStore((s) => s.subtotal());
   const clear = useCartStore((s) => s.clear);
   const user = useAuthStore((s) => s.user);
+  const savedAddress = useAddressStore((s) => s.saved);
+  const saveAddress = useAddressStore((s) => s.save);
 
   const {
     register,
@@ -85,12 +88,19 @@ function CheckoutContent() {
   const paymentMethod = watch("paymentMethod");
 
   useEffect(() => {
+    if (savedAddress) {
+      setValue("recipientName", savedAddress.recipientName);
+      setValue("recipientPhone", savedAddress.recipientPhone);
+      setValue("recipientAddress", savedAddress.recipientAddress);
+      setValue("recipientEmail", savedAddress.recipientEmail ?? "");
+      return;
+    }
     if (user) {
       setValue("recipientName", user.fullName);
       setValue("recipientPhone", user.phone);
       setValue("recipientEmail", user.email);
     }
-  }, [user, setValue]);
+  }, [savedAddress, user, setValue]);
 
   const placeOrder = useMutation({
     mutationFn: async (values: CheckoutInput) => {
@@ -105,6 +115,14 @@ function CheckoutContent() {
         recipientEmail: values.recipientEmail || undefined,
         note: values.note || undefined,
         paymentMethod: values.paymentMethod,
+      });
+
+      saveAddress({
+        recipientName: values.recipientName,
+        recipientPhone: values.recipientPhone,
+        recipientAddress: values.recipientAddress,
+        recipientEmail: values.recipientEmail || undefined,
+        note: values.note || undefined,
       });
 
       if (values.paymentMethod === "VNPAY") {
@@ -156,9 +174,27 @@ function CheckoutContent() {
       >
         <div className="space-y-8">
           <section className="rounded-xl border border-stone-200 bg-white p-6">
-            <h2 className="font-display mb-5 text-sm font-bold tracking-wider text-stone-900 uppercase">
-              Thông tin giao hàng
-            </h2>
+            <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="font-display text-sm font-bold tracking-wider text-stone-900 uppercase">
+                Thông tin giao hàng
+              </h2>
+              {savedAddress && (
+                <SavedAddressHint
+                  onReset={() => {
+                    if (user) {
+                      setValue("recipientName", user.fullName);
+                      setValue("recipientPhone", user.phone);
+                      setValue("recipientEmail", user.email);
+                    } else {
+                      setValue("recipientName", "");
+                      setValue("recipientPhone", "");
+                      setValue("recipientEmail", "");
+                    }
+                    setValue("recipientAddress", "");
+                  }}
+                />
+              )}
+            </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
                 label="Họ và tên"
@@ -336,5 +372,20 @@ function CheckoutContent() {
         </aside>
       </form>
     </div>
+  );
+}
+
+function SavedAddressHint({ onReset }: Readonly<{ onReset: () => void }>) {
+  return (
+    <span className="inline-flex items-center gap-2 text-xs text-stone-500">
+      <span>Đã điền địa chỉ giao hàng gần nhất.</span>
+      <button
+        type="button"
+        onClick={onReset}
+        className="text-primary-700 font-medium hover:underline"
+      >
+        Nhập mới
+      </button>
+    </span>
   );
 }
