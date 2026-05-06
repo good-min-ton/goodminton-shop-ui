@@ -256,10 +256,11 @@ export default function StoreAdminOrderDetailPage() {
           setShippingCode("");
         }}
         title="Chuyển sang trạng thái đang giao"
+        theme="dark"
         footer={
           <>
             <Button
-              variant="secondary"
+              variant="admin-ghost"
               onClick={() => setShippingDialog(false)}
               disabled={markShipping.isPending}
             >
@@ -269,17 +270,19 @@ export default function StoreAdminOrderDetailPage() {
               onClick={() => markShipping.mutate()}
               loading={markShipping.isPending}
               disabled={!shippingCode.trim()}
+              className="bg-amber-400 text-stone-900 hover:bg-amber-300"
             >
               Xác nhận
             </Button>
           </>
         }
       >
-        <p className="mb-4 text-sm text-stone-600">
+        <p className="text-admin-text-muted mb-4 text-sm">
           Nhập mã vận đơn (đã tạo trên web GHTK/GHN) để bắt đầu giao.
         </p>
         <Input
           label="Mã vận đơn"
+          admin
           required
           placeholder="VD: GHTK-S1.A1.123456"
           value={shippingCode}

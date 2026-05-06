@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Spinner } from "@/components/ui/spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export interface DataTableColumn<T> {
@@ -20,6 +20,8 @@ interface DataTableProps<T> {
   rowKey: (row: T) => string | number;
   onRowClick?: (row: T) => void;
   emptyText?: string;
+  /** Number of skeleton rows to show during initial load. */
+  skeletonRows?: number;
 }
 
 export function DataTable<T>({
@@ -29,7 +31,10 @@ export function DataTable<T>({
   rowKey,
   onRowClick,
   emptyText = "Không có dữ liệu",
+  skeletonRows = 6,
 }: Readonly<DataTableProps<T>>) {
+  const showSkeleton = loading && (!data || data.length === 0);
+
   return (
     <div className="border-admin-border bg-admin-surface overflow-hidden rounded-xl border">
       <div className="overflow-x-auto">
@@ -55,16 +60,24 @@ export function DataTable<T>({
             </tr>
           </thead>
           <tbody className="divide-admin-border divide-y">
-            {loading && (
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className="px-4 py-12 text-center"
-                >
-                  <Spinner className="text-primary-300" />
-                </td>
-              </tr>
-            )}
+            {showSkeleton &&
+              Array.from({ length: skeletonRows }).map((_, rowIdx) => (
+                // eslint-disable-next-line react/no-array-index-key
+                <tr key={rowIdx}>
+                  {columns.map((c) => (
+                    <td
+                      key={c.key}
+                      className={cn(
+                        "px-4 py-3.5",
+                        c.align === "right" && "text-right",
+                        c.align === "center" && "text-center",
+                      )}
+                    >
+                      <Skeleton className="h-4 w-3/4" />
+                    </td>
+                  ))}
+                </tr>
+              ))}
 
             {!loading && (!data || data.length === 0) && (
               <tr>
@@ -77,7 +90,7 @@ export function DataTable<T>({
               </tr>
             )}
 
-            {!loading &&
+            {!showSkeleton &&
               data &&
               data.map((row) => (
                 <tr

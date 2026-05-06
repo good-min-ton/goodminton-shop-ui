@@ -65,12 +65,14 @@ export default function CreateStoreAdminPage() {
         >
           <Input
             label="Họ và tên"
+            admin
             required
             error={errors.fullName?.message}
             {...register("fullName")}
           />
           <Input
             label="Email"
+            admin
             type="email"
             required
             error={errors.email?.message}
@@ -78,6 +80,7 @@ export default function CreateStoreAdminPage() {
           />
           <Input
             label="Số điện thoại"
+            admin
             type="tel"
             required
             error={errors.phone?.message}
@@ -85,6 +88,7 @@ export default function CreateStoreAdminPage() {
           />
           <Input
             label="Mật khẩu tạm"
+            admin
             type="password"
             required
             hint="Tối thiểu 8 ký tự — yêu cầu store admin đổi sau khi đăng nhập."
@@ -93,6 +97,7 @@ export default function CreateStoreAdminPage() {
           />
           <Input
             label="Xác nhận mật khẩu"
+            admin
             type="password"
             required
             error={errors.confirmPassword?.message}
@@ -102,12 +107,16 @@ export default function CreateStoreAdminPage() {
           <div className="flex justify-end gap-2 pt-2">
             <Button
               type="button"
-              variant="secondary"
+              variant="admin-ghost"
               onClick={() => router.back()}
             >
               Huỷ
             </Button>
-            <Button type="submit" loading={create.isPending}>
+            <Button
+              type="submit"
+              variant="admin-primary"
+              loading={create.isPending}
+            >
               Tạo tài khoản
             </Button>
           </div>

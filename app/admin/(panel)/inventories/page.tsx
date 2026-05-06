@@ -161,16 +161,21 @@ export default function AdminInventoriesPage() {
         open={editing !== null}
         onClose={() => setEditing(null)}
         title={editing ? `Cập nhật tồn kho: ${editing.skuCode}` : ""}
+        theme="dark"
         footer={
           <>
             <Button
-              variant="secondary"
+              variant="admin-ghost"
               onClick={() => setEditing(null)}
               disabled={update.isPending}
             >
               Huỷ
             </Button>
-            <Button onClick={() => update.mutate()} loading={update.isPending}>
+            <Button
+              variant="admin-primary"
+              onClick={() => update.mutate()}
+              loading={update.isPending}
+            >
               Cập nhật
             </Button>
           </>
@@ -179,15 +184,16 @@ export default function AdminInventoriesPage() {
         {editing && (
           <div className="space-y-4">
             <div className="space-y-1 text-sm">
-              <p className="text-stone-600">
-                <strong>{editing.productName}</strong>
+              <p className="text-admin-text font-medium">
+                {editing.productName}
               </p>
-              <p className="text-stone-500">
+              <p className="text-admin-text-muted">
                 {editing.color.name} · {editing.size.name}
               </p>
             </div>
             <Input
               label="Số lượng tồn kho"
+              admin
               type="number"
               min={0}
               value={qty}

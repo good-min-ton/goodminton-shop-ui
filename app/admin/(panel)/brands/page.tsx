@@ -138,12 +138,18 @@ export default function AdminBrandsPage() {
         open={creating || editing !== null}
         onClose={closeForm}
         title={editing ? "Sửa thương hiệu" : "Thêm thương hiệu"}
+        theme="dark"
         footer={
           <>
-            <Button variant="secondary" onClick={closeForm} disabled={upsert.isPending}>
+            <Button variant="admin-ghost" onClick={closeForm} disabled={upsert.isPending}>
               Huỷ
             </Button>
-            <Button type="submit" form="brand-form" loading={upsert.isPending}>
+            <Button
+              type="submit"
+              form="brand-form"
+              variant="admin-primary"
+              loading={upsert.isPending}
+            >
               {editing ? "Cập nhật" : "Tạo"}
             </Button>
           </>
@@ -156,6 +162,7 @@ export default function AdminBrandsPage() {
         >
           <Input
             label="Tên thương hiệu"
+            admin
             required
             error={form.formState.errors.brandName?.message}
             {...form.register("brandName")}

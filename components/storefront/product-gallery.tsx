@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,13 +24,15 @@ export function ProductGallery({
 
   return (
     <div className="space-y-3">
-      <div className="aspect-square overflow-hidden rounded-2xl bg-stone-100">
+      <div className="relative aspect-square overflow-hidden rounded-2xl bg-stone-100">
         {active ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={active.url}
             alt={alt}
-            className="h-full w-full object-contain p-6"
+            fill
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            priority
+            className="object-contain p-6"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-stone-300">
@@ -45,18 +48,19 @@ export function ProductGallery({
               key={img.id}
               onClick={() => setActiveIdx(idx)}
               className={cn(
-                "aspect-square overflow-hidden rounded-lg border-2 bg-stone-100 transition-colors",
+                "relative aspect-square overflow-hidden rounded-lg border-2 bg-stone-100 transition-colors",
                 idx === activeIdx
                   ? "border-primary-700"
                   : "border-transparent hover:border-stone-300",
               )}
               aria-label={`Ảnh ${idx + 1}`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={img.url}
                 alt={`${alt} ${idx + 1}`}
-                className="h-full w-full object-contain p-1"
+                fill
+                sizes="120px"
+                className="object-contain p-1"
               />
             </button>
           ))}

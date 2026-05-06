@@ -1,7 +1,12 @@
 "use client";
 
 import { forwardRef, useId } from "react";
-import type { InputHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type {
+  InputHTMLAttributes,
+  ReactNode,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+} from "react";
 import { cn } from "@/lib/utils";
 
 interface FieldShellProps {
@@ -10,8 +15,31 @@ interface FieldShellProps {
   error?: string;
   hint?: string;
   admin?: boolean;
-  children: (id: string) => React.ReactNode;
+  children: (id: string) => ReactNode;
   className?: string;
+}
+
+function FieldHelper({
+  error,
+  hint,
+  admin,
+}: Readonly<{ error?: string; hint?: string; admin?: boolean }>) {
+  if (error) {
+    return <span className="text-[13px] text-red-400">{error}</span>;
+  }
+  if (hint) {
+    return (
+      <span
+        className={cn(
+          "text-[13px]",
+          admin ? "text-admin-text-muted" : "text-stone-500",
+        )}
+      >
+        {hint}
+      </span>
+    );
+  }
+  return null;
 }
 
 function FieldShell({
@@ -22,7 +50,7 @@ function FieldShell({
   admin,
   children,
   className,
-}: FieldShellProps) {
+}: Readonly<FieldShellProps>) {
   const id = useId();
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
@@ -31,7 +59,7 @@ function FieldShell({
           htmlFor={id}
           className={cn(
             "text-sm font-medium",
-            admin ? "text-admin-text-muted" : "text-stone-700",
+            admin ? "text-stone-200" : "text-stone-700",
           )}
         >
           {label}
@@ -39,14 +67,15 @@ function FieldShell({
         </label>
       )}
       {children(id)}
-      {error ? (
-        <span className="text-[13px] text-red-400">{error}</span>
-      ) : hint ? (
-        <span className="text-[13px] text-stone-500">{hint}</span>
-      ) : null}
+      <FieldHelper error={error} hint={hint} admin={admin} />
     </div>
   );
 }
+
+const inputClassLight =
+  "border-[1.5px] border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:border-primary-700";
+const inputClassAdmin =
+  "border border-admin-border bg-admin-surface-2 text-admin-text placeholder:text-admin-text-muted focus:border-primary-400 focus:bg-admin-surface-2";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -85,9 +114,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           ref={ref}
           className={cn(
             "w-full rounded-lg px-3.5 py-2.5 text-[15px] outline-none transition-colors",
-            admin
-              ? "border border-admin-border bg-admin-surface text-admin-text placeholder:text-admin-text-muted focus:border-primary-400"
-              : "border-[1.5px] border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:border-primary-700",
+            admin ? inputClassAdmin : inputClassLight,
             error && "!border-red-400",
             className,
           )}
@@ -136,14 +163,66 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             ref={ref}
             className={cn(
               "w-full resize-y rounded-lg px-3.5 py-2.5 text-[15px] outline-none transition-colors",
-              admin
-                ? "border border-admin-border bg-admin-surface text-admin-text placeholder:text-admin-text-muted focus:border-primary-400"
-                : "border-[1.5px] border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:border-primary-700",
+              admin ? inputClassAdmin : inputClassLight,
               error && "!border-red-400",
               className,
             )}
             {...props}
           />
+        )}
+      </FieldShell>
+    );
+  },
+);
+
+interface SelectProps
+  extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "size"> {
+  label?: string;
+  error?: string;
+  hint?: string;
+  admin?: boolean;
+  containerClassName?: string;
+}
+
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(
+  function Select(
+    {
+      label,
+      error,
+      hint,
+      admin,
+      required,
+      className,
+      containerClassName,
+      id: idProp,
+      children,
+      ...props
+    },
+    ref,
+  ) {
+    return (
+      <FieldShell
+        label={label}
+        required={required}
+        error={error}
+        hint={hint}
+        admin={admin}
+        className={containerClassName}
+      >
+        {(autoId) => (
+          <select
+            id={idProp ?? autoId}
+            ref={ref}
+            className={cn(
+              "w-full rounded-lg px-3 py-2.5 text-[15px] outline-none transition-colors",
+              admin ? inputClassAdmin : inputClassLight,
+              error && "!border-red-400",
+              className,
+            )}
+            {...props}
+          >
+            {children}
+          </select>
         )}
       </FieldShell>
     );

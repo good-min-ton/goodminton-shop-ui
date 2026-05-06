@@ -1,10 +1,10 @@
 "use client";
 
-import { forwardRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useFieldArray, useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2, ImageIcon } from "lucide-react";
-import { Input, Textarea } from "@/components/ui/input";
+import { Input, Textarea, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AdminCard } from "@/components/admin/admin-card";
 import {
@@ -14,10 +14,7 @@ import {
   useSizes,
 } from "@/hooks/use-catalog";
 import { slugify } from "@/lib/utils";
-import {
-  productSchema,
-  type ProductFormInput,
-} from "@/lib/validation/product";
+import { productSchema, type ProductFormInput } from "@/lib/validation/product";
 
 interface ProductFormProps {
   initial?: Partial<ProductFormInput>;
@@ -70,7 +67,10 @@ export function ProductForm({
     },
   });
 
-  const specs = useFieldArray({ control: form.control, name: "specifications" });
+  const specs = useFieldArray({
+    control: form.control,
+    name: "specifications",
+  });
   const variants = useFieldArray({ control: form.control, name: "variants" });
 
   const watchName = form.watch("name");
@@ -104,6 +104,7 @@ export function ProductForm({
         <div className="grid gap-4 lg:grid-cols-2">
           <Input
             label="Tên sản phẩm"
+            admin
             required
             error={errors.name?.message}
             containerClassName="lg:col-span-2"
@@ -111,48 +112,58 @@ export function ProductForm({
           />
           <Input
             label="Slug"
+            admin
             required
             hint="URL-friendly, tự động generate từ tên — sửa thủ công nếu cần."
             error={errors.slug?.message}
             {...form.register("slug")}
           />
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-stone-700">
-              Hiển thị
-            </label>
-            <label className="inline-flex items-center gap-2 px-2 py-2.5 text-sm">
+            <span className="text-sm font-medium text-stone-200">Hiển thị</span>
+            <label className="text-admin-text inline-flex items-center gap-2 px-2 py-2.5 text-sm">
               <input
                 type="checkbox"
                 {...form.register("isVisible")}
-                className="h-4 w-4"
+                className="h-4 w-4 accent-primary-400"
               />
               <span>Hiển thị trên storefront</span>
             </label>
           </div>
 
-          <SelectField
+          <Select
             label="Danh mục"
+            admin
             required
             error={errors.categoryId?.message}
+            defaultValue={0}
             {...form.register("categoryId", { valueAsNumber: true })}
-            options={(categories.data ?? []).map((c) => ({
-              value: c.id,
-              label: c.name,
-            }))}
-          />
-          <SelectField
+          >
+            <option value={0}>-- Chọn danh mục --</option>
+            {(categories.data ?? []).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
+          <Select
             label="Thương hiệu"
+            admin
             required
             error={errors.brandId?.message}
+            defaultValue={0}
             {...form.register("brandId", { valueAsNumber: true })}
-            options={(brands.data ?? []).map((b) => ({
-              value: b.id,
-              label: b.name,
-            }))}
-          />
+          >
+            <option value={0}>-- Chọn thương hiệu --</option>
+            {(brands.data ?? []).map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </Select>
 
           <Textarea
             label="Mô tả"
+            admin
             rows={4}
             error={errors.description?.message}
             containerClassName="lg:col-span-2"
@@ -186,7 +197,8 @@ export function ProductForm({
               className="text-admin-text-muted file:bg-admin-surface-2 file:border-admin-border file:text-admin-text hover:file:bg-admin-surface-2/80 block w-full text-sm file:mr-3 file:rounded-md file:border file:px-3 file:py-1.5 file:text-sm"
             />
             <p className="text-admin-text-muted mt-2 text-xs">
-              Optional khi sửa — chỉ upload nếu muốn thay ảnh cũ. PNG/JPG, ≤ 5MB.
+              Optional khi sửa — chỉ upload nếu muốn thay ảnh cũ. PNG/JPG, ≤
+              5MB.
             </p>
           </div>
         </div>
@@ -219,11 +231,13 @@ export function ProductForm({
                 className="grid grid-cols-[1fr_2fr_auto] gap-2"
               >
                 <Input
+                  admin
                   placeholder="Tên (vd: Trọng lượng)"
                   error={errors.specifications?.[idx]?.name?.message}
                   {...form.register(`specifications.${idx}.name`)}
                 />
                 <Input
+                  admin
                   placeholder="Giá trị (vd: 83g)"
                   error={errors.specifications?.[idx]?.value?.message}
                   {...form.register(`specifications.${idx}.value`)}
@@ -273,28 +287,43 @@ export function ProductForm({
               key={field.id}
               className="bg-admin-surface-2 grid grid-cols-12 gap-2 rounded-lg p-3"
             >
-              <SelectField
+              <Select
                 label="Màu"
+                admin
                 error={errors.variants?.[idx]?.colorId?.message}
-                {...form.register(`variants.${idx}.colorId`, { valueAsNumber: true })}
-                options={(colors.data ?? []).map((c) => ({
-                  value: c.colorId,
-                  label: c.name,
-                }))}
+                defaultValue={0}
+                {...form.register(`variants.${idx}.colorId`, {
+                  valueAsNumber: true,
+                })}
                 containerClassName="col-span-3"
-              />
-              <SelectField
+              >
+                <option value={0}>--</option>
+                {(colors.data ?? []).map((c) => (
+                  <option key={c.colorId} value={c.colorId}>
+                    {c.name}
+                  </option>
+                ))}
+              </Select>
+              <Select
                 label="Cỡ"
+                admin
                 error={errors.variants?.[idx]?.sizeId?.message}
-                {...form.register(`variants.${idx}.sizeId`, { valueAsNumber: true })}
-                options={(sizes.data ?? []).map((s) => ({
-                  value: s.sizeId,
-                  label: s.name,
-                }))}
+                defaultValue={0}
+                {...form.register(`variants.${idx}.sizeId`, {
+                  valueAsNumber: true,
+                })}
                 containerClassName="col-span-2"
-              />
+              >
+                <option value={0}>--</option>
+                {(sizes.data ?? []).map((s) => (
+                  <option key={s.sizeId} value={s.sizeId}>
+                    {s.name}
+                  </option>
+                ))}
+              </Select>
               <Input
                 label="SKU"
+                admin
                 placeholder="ASTROX-88D-RED-4U"
                 error={errors.variants?.[idx]?.skuCode?.message}
                 containerClassName="col-span-3"
@@ -302,17 +331,23 @@ export function ProductForm({
               />
               <Input
                 label="Giá gốc"
+                admin
                 type="number"
                 error={errors.variants?.[idx]?.price?.message}
                 containerClassName="col-span-2"
-                {...form.register(`variants.${idx}.price`, { valueAsNumber: true })}
+                {...form.register(`variants.${idx}.price`, {
+                  valueAsNumber: true,
+                })}
               />
               <Input
                 label="Giá sale"
+                admin
                 type="number"
                 hint="Bỏ trống nếu không"
                 containerClassName="col-span-1"
-                {...form.register(`variants.${idx}.salePrice`, { setValueAs: (v) => (v === "" ? null : Number(v)) })}
+                {...form.register(`variants.${idx}.salePrice`, {
+                  setValueAs: (v) => (v === "" ? null : Number(v)),
+                })}
               />
               <button
                 type="button"
@@ -329,63 +364,10 @@ export function ProductForm({
       </AdminCard>
 
       <div className="flex justify-end gap-2">
-        <Button type="submit" loading={submitting}>
+        <Button type="submit" variant="admin-primary" loading={submitting}>
           {submitLabel}
         </Button>
       </div>
     </form>
   );
 }
-
-interface SelectOption {
-  value: number | string;
-  label: string;
-}
-
-interface SelectFieldProps
-  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "size"> {
-  label?: string;
-  required?: boolean;
-  error?: string;
-  options: SelectOption[];
-  containerClassName?: string;
-}
-
-const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
-  function SelectField(
-    {
-      label,
-      required,
-      error,
-      options,
-      containerClassName,
-      className,
-      ...rest
-    },
-    ref,
-  ) {
-    return (
-      <div className={`flex flex-col gap-1.5 ${containerClassName ?? ""}`}>
-        {label && (
-          <label className="text-sm font-medium text-stone-700">
-            {label}
-            {required && <span className="ml-1 text-red-400">*</span>}
-          </label>
-        )}
-        <select
-          ref={ref}
-          className={`rounded-lg border-[1.5px] border-stone-200 bg-white px-3 py-2.5 text-[14px] outline-none focus:border-primary-700 ${className ?? ""}`}
-          {...rest}
-        >
-          <option value={0}>-- Chọn --</option>
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        {error && <span className="text-[13px] text-red-400">{error}</span>}
-      </div>
-    );
-  },
-);

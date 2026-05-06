@@ -1,4 +1,9 @@
+import type { Metadata } from "next";
 import { Logo } from "@/components/storefront/logo";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default function AuthLayout({
   children,

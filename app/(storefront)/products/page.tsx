@@ -39,6 +39,7 @@ function ProductsListing() {
   const categoryId = numeric(sp.get("categoryId"));
   const brandId = numeric(sp.get("brandId"));
   const sortKey = sp.get("sort") ?? "createdAt:desc";
+  const q = (sp.get("q") ?? "").trim().toLowerCase();
 
   const [displayPage, setDisplayPage] = useState(1);
 
@@ -55,12 +56,13 @@ function ProductsListing() {
 
   const filtered = useMemo(() => {
     return allProducts.filter((p) => {
+      if (!p.isVisible) return false;
       if (categoryId != null && p.category.id !== categoryId) return false;
       if (brandId != null && p.brand.id !== brandId) return false;
-      if (!p.isVisible) return false;
+      if (q && !p.name.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [allProducts, categoryId, brandId]);
+  }, [allProducts, categoryId, brandId, q]);
 
   const totalDisplayPages = Math.max(
     1,
@@ -86,12 +88,10 @@ function ProductsListing() {
     <div className="container-app py-10">
       <div className="mb-8">
         <h1 className="font-display text-stone-900 text-4xl font-extrabold tracking-tight">
-          Tất cả sản phẩm
+          {q ? `Kết quả cho "${q}"` : "Tất cả sản phẩm"}
         </h1>
         <p className="mt-2 text-sm text-stone-500">
-          {list.isLoading
-            ? "Đang tải..."
-            : `${filtered.length} sản phẩm`}
+          {list.isLoading ? "Đang tải..." : `${filtered.length} sản phẩm`}
         </p>
       </div>
 

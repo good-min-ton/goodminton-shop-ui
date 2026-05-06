@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import {
   LayoutDashboard,
   Package,
@@ -14,9 +15,11 @@ import {
   Palette,
   Ruler,
   LogOut,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth-store";
+import { useAdminShellStore } from "@/store/admin-shell-store";
 import { useLogout } from "@/hooks/use-auth";
 import { Logo } from "@/components/storefront/logo";
 
@@ -60,15 +63,84 @@ const NAV_GROUPS = [
 export function AdminSidebar() {
   const pathname = usePathname() ?? "";
   const user = useAuthStore((s) => s.user);
+  const drawerOpen = useAdminShellStore((s) => s.drawerOpen);
+  const closeDrawer = useAdminShellStore((s) => s.close);
   const logout = useLogout();
 
+  useEffect(() => {
+    closeDrawer();
+  }, [pathname, closeDrawer]);
+
   return (
-    <aside className="bg-admin-bg border-admin-border bg-soft-glow-dark fixed inset-y-0 left-0 z-30 hidden w-[260px] flex-col border-r lg:flex">
-      <div className="border-admin-border border-b px-5 py-5">
-        <Logo size="sm" variant="card" />
-        <p className="font-mono text-admin-text-muted mt-2 text-[11px] tracking-widest uppercase">
-          Super Admin Panel
-        </p>
+    <>
+      <aside className="bg-admin-bg border-admin-border bg-soft-glow-dark fixed inset-y-0 left-0 z-30 hidden w-[260px] flex-col border-r lg:flex">
+        <SidebarContent
+          pathname={pathname}
+          fullName={user?.fullName}
+          email={user?.email}
+          onLogout={() => logout.mutate()}
+        />
+      </aside>
+
+      {drawerOpen && (
+        <button
+          type="button"
+          aria-label="Đóng menu"
+          onClick={closeDrawer}
+          className="fixed inset-0 z-40 cursor-default bg-stone-900/60 backdrop-blur-sm lg:hidden"
+        />
+      )}
+      <aside
+        className={cn(
+          "bg-admin-bg border-admin-border bg-soft-glow-dark fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r transition-transform lg:hidden",
+          drawerOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        <SidebarContent
+          pathname={pathname}
+          fullName={user?.fullName}
+          email={user?.email}
+          onLogout={() => logout.mutate()}
+          onClose={closeDrawer}
+        />
+      </aside>
+    </>
+  );
+}
+
+interface SidebarContentProps {
+  pathname: string;
+  fullName?: string;
+  email?: string;
+  onLogout: () => void;
+  onClose?: () => void;
+}
+
+function SidebarContent({
+  pathname,
+  fullName,
+  email,
+  onLogout,
+  onClose,
+}: Readonly<SidebarContentProps>) {
+  return (
+    <>
+      <div className="border-admin-border flex items-center justify-between border-b px-5 py-5">
+        <div>
+          <Logo size="sm" variant="card" />
+          <p className="font-mono text-admin-text-muted mt-2 text-[11px] tracking-widest uppercase">
+            Super Admin Panel
+          </p>
+        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="text-admin-text-muted hover:bg-admin-surface hover:text-admin-text rounded-md p-1.5 lg:hidden"
+            aria-label="Đóng menu"
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">
@@ -105,24 +177,24 @@ export function AdminSidebar() {
 
       <div className="border-admin-border flex items-center gap-3 border-t px-4 py-3">
         <div className="from-primary-400 to-primary-700 font-display flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br text-sm font-bold text-white">
-          {user?.fullName?.slice(0, 2).toUpperCase() || "SA"}
+          {fullName?.slice(0, 2).toUpperCase() || "SA"}
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-admin-text truncate text-sm font-medium">
-            {user?.fullName || "Super Admin"}
+            {fullName || "Super Admin"}
           </div>
           <div className="text-admin-text-muted truncate text-[11px]">
-            {user?.email}
+            {email}
           </div>
         </div>
         <button
-          onClick={() => logout.mutate()}
+          onClick={onLogout}
           className="text-admin-text-muted hover:bg-admin-surface hover:text-admin-text rounded-md p-1.5"
           aria-label="Đăng xuất"
         >
           <LogOut size={16} />
         </button>
       </div>
-    </aside>
+    </>
   );
 }

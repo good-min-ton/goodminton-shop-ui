@@ -141,12 +141,18 @@ export default function AdminColorsPage() {
         open={creating || editing !== null}
         onClose={closeForm}
         title={editing ? "Sửa màu" : "Thêm màu"}
+        theme="dark"
         footer={
           <>
-            <Button variant="secondary" onClick={closeForm} disabled={upsert.isPending}>
+            <Button variant="admin-ghost" onClick={closeForm} disabled={upsert.isPending}>
               Huỷ
             </Button>
-            <Button type="submit" form="color-form" loading={upsert.isPending}>
+            <Button
+              type="submit"
+              form="color-form"
+              variant="admin-primary"
+              loading={upsert.isPending}
+            >
               {editing ? "Cập nhật" : "Tạo"}
             </Button>
           </>
@@ -159,6 +165,7 @@ export default function AdminColorsPage() {
         >
           <Input
             label="Tên màu"
+            admin
             placeholder="VD: Đỏ, Xanh navy, Trắng..."
             required
             error={form.formState.errors.name?.message}

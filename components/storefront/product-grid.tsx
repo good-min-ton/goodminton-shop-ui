@@ -3,7 +3,7 @@
 import { ShoppingBag } from "lucide-react";
 import type { Product } from "@/types/api";
 import { ProductCard } from "./product-card";
-import { Spinner } from "@/components/ui/spinner";
+import { ProductCardSkeleton } from "./product-card-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,8 @@ interface ProductGridProps {
   emptyTitle?: string;
   emptyDescription?: string;
   cols?: 2 | 3 | 4;
+  /** Number of skeleton cards to show during initial load. */
+  skeletonCount?: number;
   className?: string;
 }
 
@@ -28,12 +30,17 @@ export function ProductGrid({
   emptyTitle = "Chưa có sản phẩm",
   emptyDescription,
   cols = 4,
+  skeletonCount,
   className,
 }: Readonly<ProductGridProps>) {
   if (loading && (!products || products.length === 0)) {
+    const count = skeletonCount ?? cols * 2;
     return (
-      <div className="flex items-center justify-center py-24">
-        <Spinner className="text-primary-700" size={32} />
+      <div className={cn("grid gap-4", colsClass[cols], className)}>
+        {Array.from({ length: count }).map((_, i) => (
+          // eslint-disable-next-line react/no-array-index-key
+          <ProductCardSkeleton key={i} />
+        ))}
       </div>
     );
   }

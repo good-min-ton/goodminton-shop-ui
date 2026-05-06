@@ -2,6 +2,7 @@
 
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -13,6 +14,8 @@ interface ConfirmDialogProps {
   destructive?: boolean;
   loading?: boolean;
   onConfirm: () => void;
+  /** Defaults to "dark" since ConfirmDialog is mostly used in admin/store-admin. */
+  theme?: "light" | "dark";
 }
 
 export function ConfirmDialog({
@@ -25,15 +28,21 @@ export function ConfirmDialog({
   destructive = false,
   loading = false,
   onConfirm,
+  theme = "dark",
 }: Readonly<ConfirmDialogProps>) {
   return (
     <Modal
       open={open}
       onClose={onClose}
       title={title}
+      theme={theme}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose} disabled={loading}>
+          <Button
+            variant={theme === "dark" ? "admin-ghost" : "secondary"}
+            onClick={onClose}
+            disabled={loading}
+          >
             {cancelLabel}
           </Button>
           <Button
@@ -46,7 +55,14 @@ export function ConfirmDialog({
         </>
       }
     >
-      <p className="text-sm text-stone-600">{description}</p>
+      <p
+        className={cn(
+          "text-sm",
+          theme === "dark" ? "text-admin-text-muted" : "text-stone-600",
+        )}
+      >
+        {description}
+      </p>
     </Modal>
   );
 }

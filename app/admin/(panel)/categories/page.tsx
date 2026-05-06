@@ -160,10 +160,11 @@ export default function AdminCategoriesPage() {
         open={creating || editing !== null}
         onClose={closeForm}
         title={editing ? "Sửa danh mục" : "Thêm danh mục"}
+        theme="dark"
         footer={
           <>
             <Button
-              variant="secondary"
+              variant="admin-ghost"
               onClick={closeForm}
               disabled={upsert.isPending}
             >
@@ -172,6 +173,7 @@ export default function AdminCategoriesPage() {
             <Button
               type="submit"
               form="category-form"
+              variant="admin-primary"
               loading={upsert.isPending}
             >
               {editing ? "Cập nhật" : "Tạo"}
@@ -186,12 +188,14 @@ export default function AdminCategoriesPage() {
         >
           <Input
             label="Tên danh mục"
+            admin
             required
             error={form.formState.errors.name?.message}
             {...form.register("name")}
           />
           <Textarea
             label="Mô tả"
+            admin
             rows={3}
             error={form.formState.errors.description?.message}
             {...form.register("description")}

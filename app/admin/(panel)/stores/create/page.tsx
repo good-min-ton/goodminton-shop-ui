@@ -7,7 +7,7 @@ import { z } from "zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { AdminCard } from "@/components/admin/admin-card";
-import { Input, Textarea } from "@/components/ui/input";
+import { Input, Textarea, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { storesApi } from "@/lib/api/stores";
@@ -76,12 +76,14 @@ export default function CreateStorePage() {
         >
           <Input
             label="Tên chi nhánh"
+            admin
             required
             error={errors.name?.message}
             {...register("name")}
           />
           <Textarea
             label="Địa chỉ"
+            admin
             required
             rows={2}
             error={errors.address?.message}
@@ -89,6 +91,7 @@ export default function CreateStorePage() {
           />
           <Input
             label="Số liên hệ"
+            admin
             type="tel"
             required
             error={errors.contact?.message}
@@ -98,6 +101,7 @@ export default function CreateStorePage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Input
               label="Kinh độ (longitude)"
+              admin
               type="number"
               step="0.000001"
               required
@@ -106,6 +110,7 @@ export default function CreateStorePage() {
             />
             <Input
               label="Vĩ độ (latitude)"
+              admin
               type="number"
               step="0.000001"
               required
@@ -114,51 +119,48 @@ export default function CreateStorePage() {
             />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-stone-700">
-              Quản lý chi nhánh <span className="text-red-400">*</span>
-            </label>
-            {availableAdmins.isLoading ? (
-              <div className="py-2">
-                <Spinner className="text-primary-300" size={20} />
-              </div>
-            ) : (
-              <select
-                {...register("adminId", { valueAsNumber: true })}
-                className="rounded-lg border-[1.5px] border-stone-200 bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-primary-700"
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  -- Chọn store admin --
+          {availableAdmins.isLoading ? (
+            <div className="py-2">
+              <Spinner className="text-primary-300" size={20} />
+            </div>
+          ) : (
+            <Select
+              label="Quản lý chi nhánh"
+              admin
+              required
+              error={errors.adminId?.message}
+              hint={
+                availableAdmins.data?.length === 0
+                  ? "Chưa có store admin nào trống. Tạo tài khoản Store Admin trước."
+                  : undefined
+              }
+              defaultValue=""
+              {...register("adminId", { valueAsNumber: true })}
+            >
+              <option value="" disabled>
+                -- Chọn store admin --
+              </option>
+              {availableAdmins.data?.map((a) => (
+                <option key={a.accountId} value={a.accountId}>
+                  {a.fullName} · {a.email}
                 </option>
-                {availableAdmins.data?.map((a) => (
-                  <option key={a.accountId} value={a.accountId}>
-                    {a.fullName} · {a.email}
-                  </option>
-                ))}
-              </select>
-            )}
-            {errors.adminId && (
-              <span className="text-[13px] text-red-400">
-                {errors.adminId.message}
-              </span>
-            )}
-            {availableAdmins.data?.length === 0 && (
-              <span className="text-[13px] text-amber-400">
-                Chưa có store admin nào trống. Tạo tài khoản Store Admin trước.
-              </span>
-            )}
-          </div>
+              ))}
+            </Select>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <Button
               type="button"
-              variant="secondary"
+              variant="admin-ghost"
               onClick={() => router.back()}
             >
               Huỷ
             </Button>
-            <Button type="submit" loading={create.isPending}>
+            <Button
+              type="submit"
+              variant="admin-primary"
+              loading={create.isPending}
+            >
               Tạo chi nhánh
             </Button>
           </div>

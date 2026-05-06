@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, ShoppingBag, User, LogOut, Menu, X } from "lucide-react";
+import { ShoppingBag, User, LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "./logo";
+import { HeaderSearch } from "./header-search";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { useAuthStore } from "@/store/auth-store";
@@ -56,13 +57,7 @@ export function StorefrontHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-1 md:ml-0">
-          <Link
-            href="/products"
-            className="hidden rounded-lg p-2 text-stone-600 hover:bg-stone-100 hover:text-stone-900 md:inline-flex"
-            aria-label="Tìm kiếm"
-          >
-            <Search size={20} />
-          </Link>
+          <HeaderSearch />
 
           <Link
             href="/cart"
@@ -92,7 +87,7 @@ export function StorefrontHeader() {
               >
                 <User size={16} />
                 <span className="max-w-[120px] truncate">
-                  {user.fullName.split(" ").slice(-1)[0]}
+                  {user.fullName.split(" ").at(-1)}
                 </span>
               </button>
             )}

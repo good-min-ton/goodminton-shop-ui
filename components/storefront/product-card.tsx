@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 import type { Product } from "@/types/api";
@@ -59,12 +60,12 @@ export function ProductCard({ product }: Readonly<ProductCardProps>) {
     >
       <div className="relative aspect-square overflow-hidden bg-stone-100">
         {product.thumbnail?.url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={product.thumbnail.url}
             alt={product.name}
-            className="h-full w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
+            fill
+            sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+            className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-stone-300">

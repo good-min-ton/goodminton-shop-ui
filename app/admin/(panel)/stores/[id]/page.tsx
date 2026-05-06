@@ -8,10 +8,12 @@ import { AdminPageHeader } from "@/components/admin/page-header";
 import { AdminCard } from "@/components/admin/admin-card";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { Modal } from "@/components/ui/modal";
+import { Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { storesApi } from "@/lib/api/stores";
+import type { Account } from "@/types/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import { formatDateTime } from "@/lib/utils";
@@ -162,16 +164,18 @@ export default function AdminStoreDetailPage() {
           setPickedAdminId("");
         }}
         title="Đổi quản lý chi nhánh"
+        theme="dark"
         footer={
           <>
             <Button
-              variant="secondary"
+              variant="admin-ghost"
               onClick={() => setReassignOpen(false)}
               disabled={reassign.isPending}
             >
               Huỷ
             </Button>
             <Button
+              variant="admin-primary"
               loading={reassign.isPending}
               disabled={!pickedAdminId}
               onClick={() =>
@@ -183,31 +187,15 @@ export default function AdminStoreDetailPage() {
           </>
         }
       >
-        <p className="mb-4 text-sm text-stone-600">
+        <p className="text-admin-text-muted mb-4 text-sm">
           Chọn store admin mới (chỉ hiển thị admin chưa gán chi nhánh nào).
         </p>
-        {availableAdmins.isLoading ? (
-          <Spinner />
-        ) : !availableAdmins.data || availableAdmins.data.length === 0 ? (
-          <p className="text-sm text-amber-600">
-            Không còn store admin nào trống.
-          </p>
-        ) : (
-          <select
-            value={pickedAdminId}
-            onChange={(e) => setPickedAdminId(Number(e.target.value))}
-            className="w-full rounded-lg border-[1.5px] border-stone-200 bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-primary-700"
-          >
-            <option value="" disabled>
-              -- Chọn admin --
-            </option>
-            {availableAdmins.data.map((a) => (
-              <option key={a.accountId} value={a.accountId}>
-                {a.fullName} · {a.email}
-              </option>
-            ))}
-          </select>
-        )}
+        <ReassignSelector
+          loading={availableAdmins.isLoading}
+          admins={availableAdmins.data ?? []}
+          value={pickedAdminId}
+          onChange={(id) => setPickedAdminId(id)}
+        />
       </Modal>
 
       <ConfirmDialog
@@ -237,5 +225,46 @@ function Row({ label, children }: Readonly<RowProps>) {
       </dt>
       <dd className="text-admin-text">{children}</dd>
     </div>
+  );
+}
+
+interface ReassignSelectorProps {
+  loading: boolean;
+  admins: Account[];
+  value: number | "";
+  onChange: (id: number) => void;
+}
+
+function ReassignSelector({
+  loading,
+  admins,
+  value,
+  onChange,
+}: Readonly<ReassignSelectorProps>) {
+  if (loading) {
+    return <Spinner className="text-primary-300" />;
+  }
+  if (admins.length === 0) {
+    return (
+      <p className="text-sm text-amber-400">
+        Không còn store admin nào trống.
+      </p>
+    );
+  }
+  return (
+    <Select
+      admin
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+    >
+      <option value="" disabled>
+        -- Chọn admin --
+      </option>
+      {admins.map((a) => (
+        <option key={a.accountId} value={a.accountId}>
+          {a.fullName} · {a.email}
+        </option>
+      ))}
+    </Select>
   );
 }

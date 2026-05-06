@@ -10,7 +10,7 @@ import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/admin/data-table";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { Modal } from "@/components/ui/modal";
-import { Input } from "@/components/ui/input";
+import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { sizesApi } from "@/lib/api/colors-sizes";
 import { useSizes } from "@/hooks/use-catalog";
@@ -156,12 +156,18 @@ export default function AdminSizesPage() {
         open={creating || editing !== null}
         onClose={closeForm}
         title={editing ? "Sửa cỡ" : "Thêm cỡ"}
+        theme="dark"
         footer={
           <>
-            <Button variant="secondary" onClick={closeForm} disabled={upsert.isPending}>
+            <Button variant="admin-ghost" onClick={closeForm} disabled={upsert.isPending}>
               Huỷ
             </Button>
-            <Button type="submit" form="size-form" loading={upsert.isPending}>
+            <Button
+              type="submit"
+              form="size-form"
+              variant="admin-primary"
+              loading={upsert.isPending}
+            >
               {editing ? "Cập nhật" : "Tạo"}
             </Button>
           </>
@@ -174,23 +180,16 @@ export default function AdminSizesPage() {
         >
           <Input
             label="Tên"
+            admin
             placeholder="VD: 4U, 3U, M, L..."
             required
             error={form.formState.errors.name?.message}
             {...form.register("name")}
           />
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-stone-700">
-              Loại <span className="text-red-400">*</span>
-            </label>
-            <select
-              {...form.register("type")}
-              className="rounded-lg border-[1.5px] border-stone-200 bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-primary-700"
-            >
-              <option value="RACKET">Vợt cầu lông</option>
-              <option value="NON_RACKET">Phụ kiện / quần áo / giày</option>
-            </select>
-          </div>
+          <Select label="Loại" admin required {...form.register("type")}>
+            <option value="RACKET">Vợt cầu lông</option>
+            <option value="NON_RACKET">Phụ kiện / quần áo / giày</option>
+          </Select>
         </form>
       </Modal>
 
