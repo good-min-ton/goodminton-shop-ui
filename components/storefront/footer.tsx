@@ -24,7 +24,7 @@ const COLUMNS = [
     heading: "Goodminton",
     links: [
       { href: "/about", label: "Giới thiệu" },
-      { href: "/contact", label: "Hệ thống cửa hàng" },
+      { href: "/stores", label: "Hệ thống cửa hàng" },
       { href: "/about", label: "Chính sách đổi trả" },
     ],
   },

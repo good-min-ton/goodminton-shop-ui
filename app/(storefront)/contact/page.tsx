@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
-import { Clock, ExternalLink, Mail, MapPin, Phone } from "lucide-react";
+import Link from "next/link";
+import {
+  ArrowRight,
+  Clock,
+  ExternalLink,
+  HelpCircle,
+  Mail,
+  Phone,
+} from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Liên hệ",
   description:
-    "Liên hệ Goodminton Shop — hotline, email, địa chỉ cửa hàng và mạng xã hội.",
+    "Liên hệ Goodminton Shop — hotline, email, các kênh hỗ trợ và câu hỏi thường gặp.",
 };
 
 const CHANNELS = [
@@ -28,16 +36,30 @@ const CHANNELS = [
   },
 ];
 
-const STORES = [
+const FAQ = [
   {
-    name: "Goodminton Hà Nội",
-    address: "123 Đường Cầu Giấy, Quận Cầu Giấy, Hà Nội",
-    phone: "024 1234 5678",
+    q: "Đơn hàng được giao trong bao lâu?",
+    a: "Tại Hà Nội và TP. Hồ Chí Minh: 1-2 ngày làm việc. Các tỉnh khác: 2-5 ngày tuỳ khu vực. Bạn sẽ nhận được mã vận đơn để tra cứu khi đơn được chuyển sang trạng thái Đang giao.",
   },
   {
-    name: "Goodminton Hồ Chí Minh",
-    address: "456 Đường Nguyễn Văn Linh, Quận 7, TP. Hồ Chí Minh",
-    phone: "028 8765 4321",
+    q: "Tôi có thể đổi trả sản phẩm không?",
+    a: "Có. Sản phẩm còn nguyên tag, hộp và phụ kiện đi kèm được đổi trả miễn phí trong 7 ngày kể từ ngày nhận hàng. Vợt đã đan dây hoặc đã sử dụng không thuộc diện đổi trả.",
+  },
+  {
+    q: "Vợt mới mua có cần đan dây ngay không?",
+    a: "Không bắt buộc. Vợt mới thường có dây căng sẵn ở mức cơ bản (~22 lbs). Nếu bạn muốn căng theo cân riêng (24-28 lbs cho người chơi nâng cao), shop hỗ trợ dịch vụ đan dây tại cửa hàng.",
+  },
+  {
+    q: "Có hỗ trợ thanh toán trả góp không?",
+    a: "Hiện tại Goodminton hỗ trợ COD, chuyển khoản và VNPay (thẻ ATM, Visa, QR). Trả góp qua thẻ tín dụng đang được triển khai trong giai đoạn tới.",
+  },
+  {
+    q: "Bảo hành sản phẩm thế nào?",
+    a: "Vợt: 6 tháng cho lỗi nhà sản xuất (gãy khung, vỡ joint). Giày: 3 tháng cho lỗi keo và đường may. Phụ kiện: tuỳ thương hiệu, thường 1 tháng. Lỗi do người dùng (đập vợt, va chạm mạnh) không thuộc bảo hành.",
+  },
+  {
+    q: "Làm sao biết vợt phù hợp với mình?",
+    a: "Liên hệ hotline hoặc đến trực tiếp cửa hàng — đội ngũ tư vấn (đều là người chơi cầu lông thật) sẽ hỏi về trình độ, lối chơi và sức cổ tay để gợi ý vợt phù hợp. Bạn cũng có thể cầm thử vợt mẫu trước khi quyết định.",
   },
 ];
 
@@ -88,38 +110,62 @@ export default function ContactPage() {
         })}
       </section>
 
-      <section className="mx-auto mt-12 max-w-4xl">
-        <h2 className="font-display text-2xl font-extrabold tracking-tight text-stone-900">
-          Hệ thống cửa hàng
-        </h2>
-        <ul className="mt-5 grid gap-4 md:grid-cols-2">
-          {STORES.map((s) => (
+      <section className="mx-auto mt-14 max-w-3xl">
+        <div className="mb-6 flex items-center gap-2">
+          <HelpCircle size={20} className="text-primary-700" />
+          <h2 className="font-display text-2xl font-extrabold tracking-tight text-stone-900">
+            Câu hỏi thường gặp
+          </h2>
+        </div>
+        <ul className="space-y-2">
+          {FAQ.map((item, idx) => (
             <li
-              key={s.name}
-              className="rounded-2xl border border-stone-200 bg-white p-5"
+              key={item.q}
+              className="overflow-hidden rounded-xl border border-stone-200 bg-white"
             >
-              <h3 className="font-display text-lg font-bold tracking-tight text-stone-900">
-                {s.name}
-              </h3>
-              <p className="mt-2 inline-flex items-start gap-2 text-sm text-stone-600">
-                <MapPin
-                  size={14}
-                  className="mt-0.5 flex-shrink-0 text-stone-400"
-                />
-                <span>{s.address}</span>
-              </p>
-              <p className="mt-1 inline-flex items-center gap-2 text-sm text-stone-600">
-                <Phone size={14} className="text-stone-400" />
-                <a href={`tel:${s.phone}`} className="hover:text-primary-700">
-                  {s.phone}
-                </a>
-              </p>
+              <details className="group">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-sm font-medium text-stone-900 transition-colors hover:bg-stone-50">
+                  <span className="flex items-baseline gap-3">
+                    <span className="font-mono text-stone-400 text-xs">
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                    <span>{item.q}</span>
+                  </span>
+                  <span className="text-primary-700 flex-shrink-0 transition-transform group-open:rotate-45">
+                    +
+                  </span>
+                </summary>
+                <p className="border-t border-stone-100 bg-stone-50 px-5 py-4 text-sm leading-relaxed text-stone-600">
+                  {item.a}
+                </p>
+              </details>
             </li>
           ))}
         </ul>
+
+        <div className="mt-6 rounded-2xl border border-primary-200 bg-primary-50/60 p-5 text-center">
+          <p className="text-sm text-stone-700">
+            Không tìm thấy câu trả lời?{" "}
+            <a
+              href="tel:1900545412"
+              className="text-primary-700 font-medium hover:underline"
+            >
+              Gọi hotline
+            </a>{" "}
+            hoặc{" "}
+            <Link
+              href="/stores"
+              className="text-primary-700 inline-flex items-center gap-1 font-medium hover:underline"
+            >
+              <span>ghé cửa hàng</span>
+              <ArrowRight size={12} />
+            </Link>{" "}
+            để được tư vấn trực tiếp.
+          </p>
+        </div>
       </section>
 
-      <section className="mx-auto mt-12 max-w-2xl text-center">
+      <section className="mx-auto mt-14 max-w-2xl text-center">
         <h2 className="font-display text-xl font-bold tracking-tight text-stone-900">
           Theo dõi chúng tôi
         </h2>

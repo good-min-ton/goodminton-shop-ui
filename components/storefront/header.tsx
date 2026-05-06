@@ -24,6 +24,7 @@ import { useLogout } from "@/hooks/use-auth";
 
 const STATIC_NAV = [
   { href: "/", label: "Trang chủ" },
+  { href: "/stores", label: "Cửa hàng" },
   { href: "/news", label: "Tin tức" },
   { href: "/about", label: "Giới thiệu" },
   { href: "/contact", label: "Liên hệ" },
@@ -297,6 +298,9 @@ function MobileNav({ pathname, isLoggedIn, onClose }: Readonly<MobileNavProps>) 
           )}
         </li>
 
+        <MobileNavLink href="/stores" pathname={pathname} onClose={onClose}>
+          Cửa hàng
+        </MobileNavLink>
         <MobileNavLink href="/news" pathname={pathname} onClose={onClose}>
           Tin tức
         </MobileNavLink>
