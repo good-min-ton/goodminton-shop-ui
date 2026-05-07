@@ -13,12 +13,15 @@ import type { Product } from "@/types/api";
 
 export default function AdminProductsPage() {
   const [page, setPage] = useState(1);
-  const list = useProductList({
-    page,
-    size: 20,
-    sortBy: "createdAt",
-    sortDir: "desc",
-  });
+  const list = useProductList(
+    {
+      page,
+      size: 20,
+      sortBy: "createdAt",
+      sortDir: "desc",
+    },
+    { refetchOnMount: "always" },
+  );
 
   return (
     <>
@@ -55,16 +58,6 @@ export default function AdminProductsPage() {
                   <ImageIcon size={16} className="text-admin-text-muted" />
                 )}
               </div>
-            ),
-          },
-          {
-            key: "id",
-            header: "ID",
-            width: "60px",
-            render: (r: Product) => (
-              <span className="font-mono text-admin-text-muted text-xs">
-                #{r.productId}
-              </span>
             ),
           },
           {

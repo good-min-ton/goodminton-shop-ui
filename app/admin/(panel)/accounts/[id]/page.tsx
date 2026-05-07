@@ -40,6 +40,7 @@ export default function AdminAccountDetailPage() {
       accountsApi.setStatus(id as number, status),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["accounts"] });
+      qc.invalidateQueries({ queryKey: ["stores", "available-admins"] });
       toast("Đã cập nhật trạng thái", "success");
       setConfirmOpen(false);
     },

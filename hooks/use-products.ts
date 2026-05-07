@@ -2,12 +2,22 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { productsApi } from "@/lib/api/products";
+import { reviewsApi } from "@/lib/api/reviews";
 import type { PageQuery, Product } from "@/types/api";
 
-export function useProductList(query: PageQuery = {}) {
+interface UseProductListOptions {
+  /** Force refetch on mount — useful for admin lists. Defaults to TanStack defaults. */
+  refetchOnMount?: boolean | "always";
+}
+
+export function useProductList(
+  query: PageQuery = {},
+  options: UseProductListOptions = {},
+) {
   return useQuery({
     queryKey: ["products", "list", query],
     queryFn: () => productsApi.list(query),
+    refetchOnMount: options.refetchOnMount,
   });
 }
 
@@ -30,9 +40,8 @@ export function useProductRecommendations(productId: number | null) {
 
 export function useProductReviews(productId: number | null, page = 1, size = 10) {
   return useQuery({
-    queryKey: ["products", "reviews", productId, page, size],
-    queryFn: () =>
-      productsApi.reviews(productId as number, { page, size }),
+    queryKey: ["reviews", "list", productId, page, size],
+    queryFn: () => reviewsApi.list(productId as number, { page, size }),
     enabled: productId != null,
   });
 }

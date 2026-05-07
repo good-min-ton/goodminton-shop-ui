@@ -38,6 +38,7 @@ export default function AdminAccountsPage() {
         sortDir: "desc",
         role: role || undefined,
       }),
+    refetchOnMount: "always",
   });
 
   return (
@@ -74,16 +75,6 @@ export default function AdminAccountsPage() {
 
       <DataTable
         columns={[
-          {
-            key: "id",
-            header: "ID",
-            width: "70px",
-            render: (r: Account) => (
-              <span className="font-mono text-admin-text-muted">
-                #{r.accountId}
-              </span>
-            ),
-          },
           {
             key: "name",
             header: "Tên",

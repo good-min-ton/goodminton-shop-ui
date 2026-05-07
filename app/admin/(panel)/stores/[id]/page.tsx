@@ -38,6 +38,8 @@ export default function AdminStoreDetailPage() {
     queryKey: ["stores", "available-admins"],
     queryFn: () => storesApi.availableAdmins(),
     enabled: reassignOpen,
+    refetchOnMount: "always",
+    staleTime: 0,
   });
 
   const reassign = useMutation({
@@ -57,6 +59,8 @@ export default function AdminStoreDetailPage() {
   const remove = useMutation({
     mutationFn: () => storesApi.remove(id as number),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["stores"] });
+      qc.invalidateQueries({ queryKey: ["accounts"] });
       toast("Đã xoá chi nhánh", "success");
       router.replace("/admin/stores");
     },
@@ -92,10 +96,7 @@ export default function AdminStoreDetailPage() {
         ]}
         actions={
           <>
-            <Button
-              variant="admin-ghost"
-              onClick={() => setReassignOpen(true)}
-            >
+            <Button variant="admin-ghost" onClick={() => setReassignOpen(true)}>
               <UserCog size={16} />
               Đổi quản lý
             </Button>
@@ -246,9 +247,7 @@ function ReassignSelector({
   }
   if (admins.length === 0) {
     return (
-      <p className="text-sm text-amber-400">
-        Không còn store admin nào trống.
-      </p>
+      <p className="text-sm text-amber-400">Không còn store admin nào trống.</p>
     );
   }
   return (

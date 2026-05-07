@@ -5,7 +5,6 @@ import type {
   Product,
   RecommendedProduct,
   ResourceImage,
-  Review,
 } from "@/types/api";
 
 export const productsApi = {
@@ -21,19 +20,6 @@ export const productsApi = {
     return api.get<RecommendedProduct[]>(
       `/api/products/${productId}/recommendations`,
     );
-  },
-
-  reviews(productId: number, query: PageQuery = {}) {
-    return api.get<PageResponse<Review>>(
-      `/api/products/${productId}/reviews${buildQuery(query)}`,
-    );
-  },
-
-  createReview(
-    productId: number,
-    body: { orderItemId: number; rating: number; comment: string },
-  ) {
-    return api.post<Review>(`/api/products/${productId}/reviews`, body);
   },
 
   create(productInfo: object, thumbnail?: File | null) {

@@ -27,6 +27,7 @@ export default function AdminOrdersPage() {
         status: status || undefined,
         type: type || undefined,
       }),
+    refetchOnMount: "always",
   });
 
   return (
@@ -78,14 +79,6 @@ export default function AdminOrdersPage() {
 
       <DataTable
         columns={[
-          {
-            key: "id",
-            header: "Đơn",
-            width: "80px",
-            render: (r: Order) => (
-              <span className="font-mono text-admin-text">#{r.orderId}</span>
-            ),
-          },
           {
             key: "customer",
             header: "Khách hàng",

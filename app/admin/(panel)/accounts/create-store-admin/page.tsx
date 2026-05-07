@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { AdminCard } from "@/components/admin/admin-card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
 
 export default function CreateStoreAdminPage() {
   const router = useRouter();
+  const qc = useQueryClient();
   const {
     register,
     handleSubmit,
@@ -39,6 +40,8 @@ export default function CreateStoreAdminPage() {
         password: values.password,
       }),
     onSuccess: (acc) => {
+      qc.invalidateQueries({ queryKey: ["stores", "available-admins"] });
+      qc.invalidateQueries({ queryKey: ["accounts"] });
       toast(`Đã tạo tài khoản ${acc.email}`, "success");
       router.replace("/admin/accounts");
     },

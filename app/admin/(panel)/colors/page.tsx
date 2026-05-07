@@ -93,16 +93,6 @@ export default function AdminColorsPage() {
       <DataTable
         columns={[
           {
-            key: "id",
-            header: "ID",
-            width: "80px",
-            render: (r: Color) => (
-              <span className="font-mono text-admin-text-muted">
-                #{r.colorId}
-              </span>
-            ),
-          },
-          {
             key: "name",
             header: "Tên màu",
             render: (r: Color) => <span className="font-medium">{r.name}</span>,

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ExternalLink,
@@ -10,10 +11,14 @@ import {
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
+import { StoresMap } from "@/components/map/stores-map";
 import { storesApi } from "@/lib/api/stores";
+import { cn } from "@/lib/utils";
 import type { Store } from "@/types/api";
 
 export default function StoresPage() {
+  const [activeId, setActiveId] = useState<number | null>(null);
+
   const stores = useQuery({
     queryKey: ["stores", "public-list"],
     queryFn: () => storesApi.list(),
@@ -35,22 +40,31 @@ export default function StoresPage() {
         </p>
       </header>
 
-      <section className="mx-auto mt-14 max-w-5xl">
-        <StoresContent
+      <section className="mt-12">
+        <Content
           loading={stores.isLoading}
           stores={stores.data ?? []}
+          activeId={activeId}
+          onPick={setActiveId}
         />
       </section>
     </div>
   );
 }
 
-interface StoresContentProps {
+interface ContentProps {
   loading: boolean;
   stores: Store[];
+  activeId: number | null;
+  onPick: (id: number | null) => void;
 }
 
-function StoresContent({ loading, stores }: Readonly<StoresContentProps>) {
+function Content({
+  loading,
+  stores,
+  activeId,
+  onPick,
+}: Readonly<ContentProps>) {
   if (loading) {
     return (
       <div className="flex justify-center py-16">
@@ -68,44 +82,71 @@ function StoresContent({ loading, stores }: Readonly<StoresContentProps>) {
     );
   }
   return (
-    <ul className="grid gap-5 md:grid-cols-2">
-      {stores.map((s) => (
-        <StoreCard key={s.storeId} store={s} />
-      ))}
-    </ul>
+    <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
+      <div className="lg:order-1">
+        <StoresMap
+          stores={stores}
+          activeStoreId={activeId}
+          onMarkerClick={(id) => {
+            onPick(id);
+            const el = document.getElementById(`store-card-${id}`);
+            el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }}
+          height={560}
+        />
+      </div>
+
+      <ul className="space-y-3 lg:order-2 lg:max-h-[560px] lg:overflow-y-auto lg:pr-1">
+        {stores.map((s) => (
+          <StoreCard
+            key={s.storeId}
+            store={s}
+            active={activeId === s.storeId}
+            onSelect={() => onPick(s.storeId)}
+          />
+        ))}
+      </ul>
+    </div>
   );
 }
 
-function StoreCard({ store }: Readonly<{ store: Store }>) {
+interface StoreCardProps {
+  store: Store;
+  active: boolean;
+  onSelect: () => void;
+}
+
+function StoreCard({ store, active, onSelect }: Readonly<StoreCardProps>) {
   const mapsUrl = `https://www.google.com/maps?q=${store.latitude},${store.longitude}`;
 
   return (
-    <li className="group relative overflow-hidden rounded-2xl border border-stone-200 bg-white transition-shadow hover:shadow-lg">
-      <div className="bg-soft-glow flex h-32 items-center justify-center border-b border-stone-200 bg-stone-50">
-        <div className="bg-primary-700 inline-flex h-14 w-14 items-center justify-center rounded-2xl text-white shadow-lg shadow-primary-700/20">
-          <StoreIcon size={24} />
-        </div>
-      </div>
-
-      <div className="p-6">
-        <h2 className="font-display text-2xl font-extrabold tracking-tight text-stone-900">
+    <li id={`store-card-${store.storeId}`}>
+      <button
+        type="button"
+        onClick={onSelect}
+        className={cn(
+          "block w-full rounded-2xl border-2 bg-white p-5 text-left transition-all",
+          active
+            ? "border-primary-700 shadow-lg"
+            : "border-stone-200 hover:border-stone-300 hover:shadow-md",
+        )}
+      >
+        <h2 className="font-display text-xl font-extrabold tracking-tight text-stone-900">
           {store.name}
         </h2>
 
-        <dl className="mt-4 space-y-2.5 text-sm">
-          <div className="flex items-start gap-2.5">
-            <MapPin
-              size={16}
-              className="mt-0.5 flex-shrink-0 text-stone-400"
-            />
+        <dl className="mt-3 space-y-2 text-sm">
+          <div className="flex items-start gap-2">
+            <MapPin size={14} className="mt-0.5 flex-shrink-0 text-stone-400" />
             <dd className="text-stone-700">{store.address}</dd>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <Phone size={16} className="flex-shrink-0 text-stone-400" />
+          <div className="flex items-center gap-2">
+            <Phone size={14} className="flex-shrink-0 text-stone-400" />
             <dd>
               <a
                 href={`tel:${store.contact}`}
+                onClick={(e) => e.stopPropagation()}
                 className="font-mono text-stone-700 hover:text-primary-700"
               >
                 {store.contact}
@@ -114,9 +155,9 @@ function StoreCard({ store }: Readonly<{ store: Store }>) {
           </div>
 
           {store.admin && (
-            <div className="flex items-center gap-2.5">
-              <User size={16} className="flex-shrink-0 text-stone-400" />
-              <dd className="text-stone-500 text-xs">
+            <div className="flex items-center gap-2">
+              <User size={14} className="flex-shrink-0 text-stone-400" />
+              <dd className="text-xs text-stone-500">
                 Quản lý:{" "}
                 <span className="text-stone-700">{store.admin.fullName}</span>
               </dd>
@@ -128,12 +169,13 @@ function StoreCard({ store }: Readonly<{ store: Store }>) {
           href={mapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+          className="text-primary-700 mt-4 inline-flex items-center gap-1.5 text-xs font-medium hover:underline"
         >
-          <span>Xem trên Google Maps</span>
-          <ExternalLink size={12} />
+          <span>Mở trên Google Maps</span>
+          <ExternalLink size={11} />
         </a>
-      </div>
+      </button>
     </li>
   );
 }

@@ -58,14 +58,6 @@ export default function StoreAdminOrdersPage() {
       <DataTable
         columns={[
           {
-            key: "id",
-            header: "Đơn",
-            width: "80px",
-            render: (r: Order) => (
-              <span className="font-mono text-admin-text">#{r.orderId}</span>
-            ),
-          },
-          {
             key: "customer",
             header: "Khách hàng",
             render: (r: Order) => (

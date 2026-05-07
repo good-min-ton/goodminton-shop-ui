@@ -103,14 +103,6 @@ export default function AdminCategoriesPage() {
       <DataTable
         columns={[
           {
-            key: "id",
-            header: "ID",
-            width: "80px",
-            render: (r: Category) => (
-              <span className="font-mono text-admin-text-muted">#{r.id}</span>
-            ),
-          },
-          {
             key: "name",
             header: "Tên",
             render: (r: Category) => (

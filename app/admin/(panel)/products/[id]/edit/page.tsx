@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { ProductForm } from "@/components/admin/product-form";
 import { Spinner } from "@/components/ui/spinner";
@@ -16,6 +16,7 @@ export default function EditProductPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id ? Number(params.id) : null;
   const router = useRouter();
+  const qc = useQueryClient();
 
   const product = useProduct(id);
 
@@ -28,6 +29,7 @@ export default function EditProductPage() {
       thumbnail: File | null;
     }) => productsApi.update(id as number, values, thumbnail),
     onSuccess: (p) => {
+      qc.invalidateQueries({ queryKey: ["products"] });
       toast("Đã cập nhật sản phẩm", "success");
       router.replace(`/admin/products/${p.productId}`);
     },

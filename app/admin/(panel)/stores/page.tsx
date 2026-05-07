@@ -13,6 +13,7 @@ export default function AdminStoresPage() {
   const list = useQuery({
     queryKey: ["stores", "list"],
     queryFn: () => storesApi.list(),
+    refetchOnMount: "always",
   });
 
   return (
@@ -32,16 +33,6 @@ export default function AdminStoresPage() {
 
       <DataTable
         columns={[
-          {
-            key: "id",
-            header: "ID",
-            width: "70px",
-            render: (r: Store) => (
-              <span className="font-mono text-admin-text-muted">
-                #{r.storeId}
-              </span>
-            ),
-          },
           {
             key: "name",
             header: "Tên",

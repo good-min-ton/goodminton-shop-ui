@@ -92,14 +92,6 @@ export default function AdminBrandsPage() {
       <DataTable
         columns={[
           {
-            key: "id",
-            header: "ID",
-            width: "80px",
-            render: (r: Brand) => (
-              <span className="font-mono text-admin-text-muted">#{r.id}</span>
-            ),
-          },
-          {
             key: "name",
             header: "Tên",
             render: (r: Brand) => <span className="font-medium">{r.name}</span>,

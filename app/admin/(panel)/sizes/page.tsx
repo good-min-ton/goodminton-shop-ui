@@ -97,16 +97,6 @@ export default function AdminSizesPage() {
       <DataTable
         columns={[
           {
-            key: "id",
-            header: "ID",
-            width: "80px",
-            render: (r: SizeOption) => (
-              <span className="font-mono text-admin-text-muted">
-                #{r.sizeId}
-              </span>
-            ),
-          },
-          {
             key: "name",
             header: "Tên",
             render: (r: SizeOption) => (

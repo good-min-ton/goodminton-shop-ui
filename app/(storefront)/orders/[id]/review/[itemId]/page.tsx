@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useMyOrder } from "@/hooks/use-orders";
-import { productsApi } from "@/lib/api/products";
+import { reviewsApi } from "@/lib/api/reviews";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import { cn } from "@/lib/utils";
@@ -40,7 +40,7 @@ function WriteReviewContent() {
   const submit = useMutation({
     mutationFn: () => {
       if (!item) throw new Error("Item not found");
-      return productsApi.createReview(item.productId, {
+      return reviewsApi.create(item.productId, {
         orderItemId: item.orderItemId,
         rating,
         comment: comment.trim(),

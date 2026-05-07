@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { ProductForm } from "@/components/admin/product-form";
 import { productsApi } from "@/lib/api/products";
@@ -11,6 +11,7 @@ import type { ProductFormInput } from "@/lib/validation/product";
 
 export default function CreateProductPage() {
   const router = useRouter();
+  const qc = useQueryClient();
 
   const create = useMutation({
     mutationFn: ({
@@ -21,6 +22,7 @@ export default function CreateProductPage() {
       thumbnail: File | null;
     }) => productsApi.create(values, thumbnail),
     onSuccess: (p) => {
+      qc.invalidateQueries({ queryKey: ["products"] });
       toast(`Đã tạo sản phẩm "${p.name}"`, "success");
       router.replace(`/admin/products/${p.productId}`);
     },
