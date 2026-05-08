@@ -1,25 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/admin/data-table";
 import { Pagination } from "@/components/storefront/pagination";
-import { Modal } from "@/components/ui/modal";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { InventoryFormModal } from "@/components/admin/inventory-form-modal";
 import { storesApi } from "@/lib/api/stores";
 import { inventoriesApi } from "@/lib/api/inventories";
-import { getErrorMessage } from "@/lib/error-messages";
-import { toast } from "@/store/toast-store";
 import type { Inventory } from "@/types/api";
 
 export default function AdminInventoriesPage() {
-  const qc = useQueryClient();
   const [storeId, setStoreId] = useState<number | "">("");
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<Inventory | null>(null);
-  const [qty, setQty] = useState(0);
+  const [adding, setAdding] = useState(false);
 
   const stores = useQuery({
     queryKey: ["stores", "list"],
@@ -38,35 +35,33 @@ export default function AdminInventoriesPage() {
     enabled: storeId !== "",
   });
 
-  const update = useMutation({
-    mutationFn: () => {
-      if (!editing) throw new Error("No inventory selected");
-      return inventoriesApi.set({
-        storeId: editing.storeId,
-        variantId: editing.variantId,
-        quantity: qty,
-      });
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["inventories"] });
-      toast("Đã cập nhật tồn kho", "success");
-      setEditing(null);
-    },
-    onError: (err) => {
-      toast(getErrorMessage(err), "error");
-    },
+  // For variant-picker filtering we need ALL existing inventory at this store,
+  // not just the current page. Cheap-ish for typical store sizes.
+  const allAtStore = useQuery({
+    queryKey: ["inventories", "by-store-full", storeId],
+    queryFn: () =>
+      inventoriesApi.byStore(storeId as number, { page: 1, size: 1000 }),
+    enabled: storeId !== "" && (editing !== null || adding),
   });
 
-  function openEdit(row: Inventory) {
-    setEditing(row);
-    setQty(row.quantity);
-  }
+  const modalOpen = editing !== null || adding;
+  const numericStoreId = typeof storeId === "number" ? storeId : null;
 
   return (
     <>
       <AdminPageHeader
         title="Kho hàng"
         description="Tồn kho theo từng chi nhánh và variant."
+        actions={
+          <Button
+            variant="admin-primary"
+            onClick={() => setAdding(true)}
+            disabled={storeId === ""}
+          >
+            <Plus size={16} />
+            Thêm tồn kho
+          </Button>
+        }
       />
 
       <div className="mb-5 flex items-center gap-3">
@@ -83,6 +78,7 @@ export default function AdminInventoriesPage() {
           {stores.data?.map((s) => (
             <option key={s.id} value={s.id}>
               {s.name}
+              {s.isCentral ? " (HQ)" : ""}
             </option>
           ))}
         </select>
@@ -134,7 +130,7 @@ export default function AdminInventoriesPage() {
                 align: "right",
                 render: (r: Inventory) => (
                   <button
-                    onClick={() => openEdit(r)}
+                    onClick={() => setEditing(r)}
                     className="text-primary-300 text-xs hover:underline"
                   >
                     Cập nhật
@@ -145,7 +141,7 @@ export default function AdminInventoriesPage() {
             data={inv.data?.content}
             loading={inv.isLoading}
             rowKey={(r) => r.id}
-            emptyText="Chi nhánh này chưa có tồn kho. Thêm variant cho sản phẩm và set quantity."
+            emptyText='Chi nhánh này chưa có tồn kho. Bấm "Thêm tồn kho" để cấp hàng cho variant đầu tiên.'
           />
 
           <Pagination
@@ -157,52 +153,16 @@ export default function AdminInventoriesPage() {
         </>
       )}
 
-      <Modal
-        open={editing !== null}
-        onClose={() => setEditing(null)}
-        title={editing ? `Cập nhật tồn kho: ${editing.skuCode}` : ""}
-        theme="dark"
-        footer={
-          <>
-            <Button
-              variant="admin-ghost"
-              onClick={() => setEditing(null)}
-              disabled={update.isPending}
-            >
-              Huỷ
-            </Button>
-            <Button
-              variant="admin-primary"
-              onClick={() => update.mutate()}
-              loading={update.isPending}
-            >
-              Cập nhật
-            </Button>
-          </>
-        }
-      >
-        {editing && (
-          <div className="space-y-4">
-            <div className="space-y-1 text-sm">
-              <p className="text-admin-text font-medium">
-                {editing.productName}
-              </p>
-              <p className="text-admin-text-muted">
-                {editing.color.name} · {editing.size.name}
-              </p>
-            </div>
-            <Input
-              label="Số lượng tồn kho"
-              admin
-              type="number"
-              min={0}
-              value={qty}
-              onChange={(e) => setQty(Math.max(0, Number(e.target.value)))}
-              hint="Nhập số tuyệt đối — sẽ ghi đè số hiện tại."
-            />
-          </div>
-        )}
-      </Modal>
+      <InventoryFormModal
+        open={modalOpen}
+        storeId={numericStoreId}
+        editing={editing}
+        existingInventory={allAtStore.data?.content ?? []}
+        onClose={() => {
+          setEditing(null);
+          setAdding(false);
+        }}
+      />
     </>
   );
 }
