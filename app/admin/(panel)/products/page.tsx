@@ -138,13 +138,13 @@ export default function AdminProductsPage() {
             render: (r: Product) => (
               <div className="inline-flex items-center gap-3">
                 <Link
-                  href={`/admin/products/${r.productId}`}
+                  href={`/admin/products/${r.id}`}
                   className="text-primary-300 text-xs hover:underline"
                 >
                   Chi tiết
                 </Link>
                 <Link
-                  href={`/admin/products/${r.productId}/edit`}
+                  href={`/admin/products/${r.id}/edit`}
                   className="text-admin-text-muted hover:text-admin-text"
                   aria-label="Sửa"
                 >
@@ -156,7 +156,7 @@ export default function AdminProductsPage() {
         ]}
         data={list.data?.content}
         loading={list.isLoading}
-        rowKey={(r) => r.productId}
+        rowKey={(r) => r.id}
       />
 
       <Pagination

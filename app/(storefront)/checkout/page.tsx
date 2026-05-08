@@ -126,7 +126,7 @@ function CheckoutContent() {
       });
 
       if (values.paymentMethod === "VNPAY") {
-        const { paymentUrl } = await vnpayApi.createPaymentUrl(order.orderId);
+        const { paymentUrl } = await vnpayApi.createPaymentUrl(order.id);
         return { order, paymentUrl };
       }
       return { order, paymentUrl: null };
@@ -137,7 +137,7 @@ function CheckoutContent() {
         globalThis.location.href = paymentUrl;
       } else {
         toast("Đặt hàng thành công!", "success");
-        router.replace(`/orders/${order.orderId}`);
+        router.replace(`/orders/${order.id}`);
       }
     },
     onError: (err) => {

@@ -31,7 +31,7 @@ function WriteReviewContent() {
   const router = useRouter();
 
   const { data: order, isLoading } = useMyOrder(orderId);
-  const item = order?.items.find((it) => it.orderItemId === itemId);
+  const item = order?.items.find((it) => it.id === itemId);
 
   const [rating, setRating] = useState(5);
   const [hover, setHover] = useState<number | null>(null);
@@ -41,7 +41,7 @@ function WriteReviewContent() {
     mutationFn: () => {
       if (!item) throw new Error("Item not found");
       return reviewsApi.create(item.productId, {
-        orderItemId: item.orderItemId,
+        orderItemId: item.id,
         rating,
         comment: comment.trim(),
       });

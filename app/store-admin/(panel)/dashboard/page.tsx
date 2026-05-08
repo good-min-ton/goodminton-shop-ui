@@ -174,7 +174,7 @@ function LowStockSection({
         else qtyClass = "text-emerald-400";
         return (
           <li
-            key={inv.inventoryId}
+            key={inv.id}
             className="bg-admin-surface-2 flex items-center justify-between rounded-md px-3 py-2 text-xs"
           >
             <div className="min-w-0 flex-1">
@@ -217,13 +217,13 @@ function RecentOrdersSection({
   return (
     <ul className="divide-admin-border divide-y">
       {orders.map((o) => (
-        <li key={o.orderId}>
+        <li key={o.id}>
           <Link
-            href={`/store-admin/orders/${o.orderId}`}
+            href={`/store-admin/orders/${o.id}`}
             className="hover:bg-admin-surface-2 flex items-center gap-4 px-5 py-3 text-sm transition-colors"
           >
             <span className="font-mono text-admin-text w-16">
-              #{o.orderId}
+              #{o.id}
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-admin-text font-medium">{o.customerName}</p>

@@ -152,7 +152,7 @@ export default function AdminOrdersPage() {
             width: "100px",
             render: (r: Order) => (
               <Link
-                href={`/admin/orders/${r.orderId}`}
+                href={`/admin/orders/${r.id}`}
                 className="text-primary-300 text-xs hover:underline"
               >
                 Chi tiết →
@@ -162,7 +162,7 @@ export default function AdminOrdersPage() {
         ]}
         data={list.data?.content}
         loading={list.isLoading}
-        rowKey={(r) => r.orderId}
+        rowKey={(r) => r.id}
       />
 
       <Pagination

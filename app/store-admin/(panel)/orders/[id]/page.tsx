@@ -99,10 +99,10 @@ export default function StoreAdminOrderDetailPage() {
   return (
     <>
       <AdminPageHeader
-        title={`Đơn #${o.orderId}`}
+        title={`Đơn #${o.id}`}
         breadcrumbs={[
           { label: "Đơn hàng", href: "/store-admin/orders" },
-          { label: `#${o.orderId}` },
+          { label: `#${o.id}` },
         ]}
         actions={<ActionButtons
           status={o.status}
@@ -136,7 +136,7 @@ export default function StoreAdminOrderDetailPage() {
             <ul className="divide-admin-border divide-y">
               {o.items.map((it) => (
                 <li
-                  key={it.orderItemId}
+                  key={it.id}
                   className="flex items-start justify-between gap-4 px-5 py-4 text-sm"
                 >
                   <div className="min-w-0 flex-1">
@@ -223,7 +223,7 @@ export default function StoreAdminOrderDetailPage() {
               <ul className="space-y-2">
                 {o.payments.map((p) => (
                   <li
-                    key={p.paymentId}
+                    key={p.id}
                     className="bg-admin-surface-2 flex items-center justify-between rounded-lg px-3 py-2 text-sm"
                   >
                     <div>

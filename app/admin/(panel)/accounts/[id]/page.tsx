@@ -79,7 +79,7 @@ export default function AdminAccountDetailPage() {
         title={a.fullName}
         breadcrumbs={[
           { label: "Tài khoản", href: "/admin/accounts" },
-          { label: `#${a.accountId}` },
+          { label: `#${a.id}` },
         ]}
         actions={
           <Button
@@ -108,7 +108,7 @@ export default function AdminAccountDetailPage() {
           </h2>
           <dl className="space-y-3 text-sm">
             <Row label="ID">
-              <span className="font-mono">#{a.accountId}</span>
+              <span className="font-mono">#{a.id}</span>
             </Row>
             <Row label="Họ tên">{a.fullName}</Row>
             <Row label="Email">{a.email}</Row>

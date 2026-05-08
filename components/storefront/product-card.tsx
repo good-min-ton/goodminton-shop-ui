@@ -12,13 +12,18 @@ import { toast } from "@/store/toast-store";
 
 interface ProductCardProps {
   product: Product;
+  /** Eager-load the thumbnail for above-the-fold cards (helps LCP). */
+  priority?: boolean;
 }
 
-export function ProductCard({ product }: Readonly<ProductCardProps>) {
+export function ProductCard({
+  product,
+  priority = false,
+}: Readonly<ProductCardProps>) {
   const addItem = useCartStore((s) => s.addItem);
   const openCart = useCartStore((s) => s.open);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
-  const isWished = useWishlistStore((s) => s.has(product.productId));
+  const isWished = useWishlistStore((s) => s.has(product.id));
   const { price, salePrice } = getDisplayPrice(product);
   const onSale = salePrice != null && salePrice < price;
   const display = onSale && salePrice != null ? salePrice : price;
@@ -28,7 +33,7 @@ export function ProductCard({ product }: Readonly<ProductCardProps>) {
     new Map(
       product.variants
         .filter((v) => !!v.color)
-        .map((v) => [v.color.colorId, v.color]),
+        .map((v) => [v.color.id, v.color]),
     ).values(),
   );
 
@@ -41,8 +46,8 @@ export function ProductCard({ product }: Readonly<ProductCardProps>) {
       return;
     }
     addItem({
-      variantId: v.variantId,
-      productId: product.productId,
+      variantId: v.id,
+      productId: product.id,
       productSlug: product.slug,
       productName: product.name,
       thumbnailUrl: product.thumbnail?.url ?? null,
@@ -61,7 +66,7 @@ export function ProductCard({ product }: Readonly<ProductCardProps>) {
     e.preventDefault();
     e.stopPropagation();
     toggleWishlist({
-      productId: product.productId,
+      productId: product.id,
       slug: product.slug,
       name: product.name,
       brandName: product.brand.name,
@@ -86,6 +91,7 @@ export function ProductCard({ product }: Readonly<ProductCardProps>) {
             alt={product.name}
             fill
             sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+            priority={priority}
             className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
@@ -146,7 +152,7 @@ export function ProductCard({ product }: Readonly<ProductCardProps>) {
             <div className="mt-2.5 flex items-center gap-1.5">
               {distinctColors.slice(0, 5).map((c) => (
                 <span
-                  key={c.colorId}
+                  key={c.id}
                   title={c.name}
                   className="h-3.5 w-3.5 rounded-full border border-black/10 bg-stone-200"
                   style={c.hexCode ? { background: c.hexCode } : undefined}

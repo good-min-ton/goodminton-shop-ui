@@ -119,7 +119,7 @@ export default function StoreAdminOrdersPage() {
             align: "right",
             render: (r: Order) => (
               <Link
-                href={`/store-admin/orders/${r.orderId}`}
+                href={`/store-admin/orders/${r.id}`}
                 className="text-xs text-amber-300 hover:underline"
               >
                 Xử lý →
@@ -129,7 +129,7 @@ export default function StoreAdminOrdersPage() {
         ]}
         data={filtered}
         loading={list.isLoading}
-        rowKey={(r) => r.orderId}
+        rowKey={(r) => r.id}
       />
 
       <Pagination

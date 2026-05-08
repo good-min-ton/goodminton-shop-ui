@@ -25,7 +25,7 @@ export default function VariantImagesPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const product = useProduct(productId);
-  const variant = product.data?.variants.find((v) => v.variantId === variantId);
+  const variant = product.data?.variants.find((v) => v.id === variantId);
 
   const upload = useMutation({
     mutationFn: () => {
@@ -83,7 +83,7 @@ export default function VariantImagesPage() {
         description={`${p.name} · ${variant.color.name} · ${variant.size.name}`}
         breadcrumbs={[
           { label: "Sản phẩm", href: "/admin/products" },
-          { label: p.name, href: `/admin/products/${p.productId}` },
+          { label: p.name, href: `/admin/products/${p.id}` },
           { label: "Ảnh variant" },
         ]}
       />

@@ -19,7 +19,7 @@ import { toast } from "@/store/toast-store";
 import type { Brand } from "@/types/api";
 
 const brandSchema = z.object({
-  brandName: z.string().min(2, "Tên tối thiểu 2 ký tự").max(80),
+  name: z.string().min(2, "Tên tối thiểu 2 ký tự").max(80),
 });
 type FormInput = z.infer<typeof brandSchema>;
 
@@ -32,16 +32,16 @@ export default function AdminBrandsPage() {
 
   const form = useForm<FormInput>({
     resolver: zodResolver(brandSchema),
-    defaultValues: { brandName: "" },
+    defaultValues: { name: "" },
   });
 
   function openCreate() {
-    form.reset({ brandName: "" });
+    form.reset({ name: "" });
     setCreating(true);
   }
 
   function openEdit(row: Brand) {
-    form.reset({ brandName: row.name });
+    form.reset({ name: row.name });
     setEditing(row);
   }
 
@@ -156,8 +156,8 @@ export default function AdminBrandsPage() {
             label="Tên thương hiệu"
             admin
             required
-            error={form.formState.errors.brandName?.message}
-            {...form.register("brandName")}
+            error={form.formState.errors.name?.message}
+            {...form.register("name")}
           />
         </form>
       </Modal>

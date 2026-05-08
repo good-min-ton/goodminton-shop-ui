@@ -68,17 +68,17 @@ function OrdersContent() {
         <ul className="space-y-4">
           {orders.map((order) => (
             <li
-              key={order.orderId}
+              key={order.id}
               className="overflow-hidden rounded-xl border border-stone-200 bg-white"
             >
               <Link
-                href={`/orders/${order.orderId}`}
+                href={`/orders/${order.id}`}
                 className="block transition-colors hover:bg-stone-50"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 px-5 py-3">
                   <div>
                     <div className="font-mono text-sm font-medium text-stone-900">
-                      #{order.orderId}
+                      #{order.id}
                     </div>
                     <div className="text-xs text-stone-500">
                       {formatDateTime(order.orderDate)}
@@ -91,7 +91,7 @@ function OrdersContent() {
                   <ul className="space-y-2">
                     {order.items.slice(0, 3).map((it) => (
                       <li
-                        key={it.orderItemId}
+                        key={it.id}
                         className="flex items-center gap-3 text-sm"
                       >
                         <ShoppingBag size={14} className="text-stone-400" />

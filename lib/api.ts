@@ -5,16 +5,14 @@
  * - Reads access token from localStorage and attaches as Bearer.
  * - Unwraps `{ code, result }` envelope. Non-1000 code → throws ApiException.
  * - On 401 (or code 1102/1103/1005), tries refresh once; on success retries the original request.
+ * - If refresh fails, clears auth and retries the request anonymously — public endpoints keep
+ *   working; protected endpoints rethrow and let RequireAuth handle the redirect.
  * - Single-flight refresh: concurrent failing requests share one refresh round-trip.
  */
 
 import type { ApiResponse, AuthTokens } from "@/types/api";
-import {
-  clearAuth,
-  getAccessToken,
-  getRefreshToken,
-  setTokens,
-} from "./auth-storage";
+import { getAccessToken, getRefreshToken, setTokens } from "./auth-storage";
+import { useAuthStore } from "@/store/auth-store";
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
@@ -67,11 +65,9 @@ async function performRefresh(): Promise<AuthTokens> {
 }
 
 function refreshTokens(): Promise<AuthTokens> {
-  if (!refreshPromise) {
-    refreshPromise = performRefresh().finally(() => {
-      refreshPromise = null;
-    });
-  }
+  refreshPromise ??= performRefresh().finally(() => {
+    refreshPromise = null;
+  });
   return refreshPromise;
 }
 
@@ -117,15 +113,6 @@ function shouldAttemptRefresh(
   return code != null && isAuthExpiredCode(code);
 }
 
-function redirectToLogin(path: string) {
-  const g = globalThis as typeof globalThis & {
-    location?: Location;
-  };
-  if (g.location === undefined || path.includes("/auth/")) return;
-  const next = encodeURIComponent(g.location.pathname + g.location.search);
-  g.location.href = `/login?next=${next}`;
-}
-
 function assertSuccess<T>(res: Response, envelope: Envelope<T>) {
   const code = envelope?.code;
   if (!res.ok) {
@@ -156,10 +143,11 @@ async function rawFetch<T>(
     try {
       await refreshTokens();
       return rawFetch<T>(path, { ...init, _retried: true });
-    } catch (err) {
-      clearAuth();
-      redirectToLogin(path);
-      throw err;
+    } catch {
+      useAuthStore.getState().logout();
+      // Retry once anonymously: public endpoints keep working, protected ones
+      // will 401 again and let the calling page (via RequireAuth) handle redirect.
+      return rawFetch<T>(path, { ...init, skipAuth: true, _retried: true });
     }
   }
 

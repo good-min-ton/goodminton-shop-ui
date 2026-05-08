@@ -53,7 +53,7 @@ export default function AdminColorsPage() {
   const upsert = useMutation({
     mutationFn: (values: FormInput) =>
       editing
-        ? colorsApi.update(editing.colorId, values)
+        ? colorsApi.update(editing.id, values)
         : colorsApi.create(values),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["colors"] });
@@ -124,7 +124,7 @@ export default function AdminColorsPage() {
         ]}
         data={list.data}
         loading={list.isLoading}
-        rowKey={(r) => r.colorId}
+        rowKey={(r) => r.id}
       />
 
       <Modal
@@ -172,7 +172,7 @@ export default function AdminColorsPage() {
         confirmLabel="Xoá"
         destructive
         loading={remove.isPending}
-        onConfirm={() => deleting && remove.mutate(deleting.colorId)}
+        onConfirm={() => deleting && remove.mutate(deleting.id)}
       />
     </>
   );

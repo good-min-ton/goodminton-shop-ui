@@ -58,7 +58,7 @@ export default function AdminSizesPage() {
 
   const upsert = useMutation({
     mutationFn: (values: FormInput) =>
-      editing ? sizesApi.update(editing.sizeId, values) : sizesApi.create(values),
+      editing ? sizesApi.update(editing.id, values) : sizesApi.create(values),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sizes"] });
       toast(editing ? "Đã cập nhật" : "Đã thêm cỡ", "success");
@@ -139,7 +139,7 @@ export default function AdminSizesPage() {
         ]}
         data={list.data}
         loading={list.isLoading}
-        rowKey={(r) => r.sizeId}
+        rowKey={(r) => r.id}
       />
 
       <Modal
@@ -191,7 +191,7 @@ export default function AdminSizesPage() {
         confirmLabel="Xoá"
         destructive
         loading={remove.isPending}
-        onConfirm={() => deleting && remove.mutate(deleting.sizeId)}
+        onConfirm={() => deleting && remove.mutate(deleting.id)}
       />
     </>
   );

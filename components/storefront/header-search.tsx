@@ -50,13 +50,13 @@ export function HeaderSearch() {
         setQuery("");
       }
     };
-    window.addEventListener("mousedown", onPointer);
-    window.addEventListener("touchstart", onPointer);
-    window.addEventListener("keydown", onKey);
+    globalThis.addEventListener("mousedown", onPointer);
+    globalThis.addEventListener("touchstart", onPointer);
+    globalThis.addEventListener("keydown", onKey);
     return () => {
-      window.removeEventListener("mousedown", onPointer);
-      window.removeEventListener("touchstart", onPointer);
-      window.removeEventListener("keydown", onKey);
+      globalThis.removeEventListener("mousedown", onPointer);
+      globalThis.removeEventListener("touchstart", onPointer);
+      globalThis.removeEventListener("keydown", onKey);
     };
   }, [open]);
 
@@ -65,7 +65,7 @@ export function HeaderSearch() {
     setTimeout(() => inputRef.current?.focus(), 0);
   }
 
-  function submit(e: React.FormEvent) {
+  function submit(e: React.SyntheticEvent) {
     e.preventDefault();
     const q = query.trim();
     if (!q) return;
@@ -168,7 +168,7 @@ function SearchResults({
         const { price, salePrice } = getDisplayPrice(p);
         const display = salePrice ?? price;
         return (
-          <li key={p.productId}>
+          <li key={p.id}>
             <Link
               href={`/products/${p.slug}`}
               onClick={onPick}

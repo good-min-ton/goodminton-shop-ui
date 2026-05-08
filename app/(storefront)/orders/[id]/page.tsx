@@ -81,13 +81,13 @@ function OrderDetailContent() {
           Đơn hàng
         </Link>
         <ChevronRight size={12} />
-        <span className="font-mono text-stone-700">#{order.orderId}</span>
+        <span className="font-mono text-stone-700">#{order.id}</span>
       </nav>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-stone-900 text-3xl font-extrabold tracking-tight">
-            Đơn hàng #{order.orderId}
+            Đơn hàng #{order.id}
           </h1>
           <p className="mt-1 text-sm text-stone-500">
             Đặt lúc {formatDateTime(order.orderDate)}
@@ -108,9 +108,9 @@ function OrderDetailContent() {
             </h2>
             <ul className="divide-y divide-stone-100">
               {order.items.map((it) => {
-                const reviewHref = `/orders/${order.orderId}/review/${it.orderItemId}`;
+                const reviewHref = `/orders/${order.id}/review/${it.id}`;
                 return (
-                  <li key={it.orderItemId} className="flex gap-4 p-5">
+                  <li key={it.id} className="flex gap-4 p-5">
                     <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-300">
                       <ShoppingBag size={28} />
                     </div>
@@ -189,7 +189,7 @@ function OrderDetailContent() {
               <ul className="space-y-3">
                 {order.payments.map((p) => (
                   <li
-                    key={p.paymentId}
+                    key={p.id}
                     className="flex items-center justify-between rounded-lg bg-stone-50 px-4 py-3 text-sm"
                   >
                     <div>
@@ -298,7 +298,7 @@ function OrderDetailContent() {
         }
       >
         <p className="text-sm text-stone-600">
-          Bạn có chắc muốn huỷ đơn hàng <strong>#{order.orderId}</strong>? Số
+          Bạn có chắc muốn huỷ đơn hàng <strong>#{order.id}</strong>? Số
           lượng tồn kho sẽ được hoàn lại tự động.
         </p>
       </Modal>

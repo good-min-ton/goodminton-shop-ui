@@ -61,11 +61,11 @@ export default function AdminProductDetailPage() {
         title={p.name}
         breadcrumbs={[
           { label: "Sản phẩm", href: "/admin/products" },
-          { label: `#${p.productId}` },
+          { label: `#${p.id}` },
         ]}
         actions={
           <>
-            <Link href={`/admin/products/${p.productId}/edit`}>
+            <Link href={`/admin/products/${p.id}/edit`}>
               <Button variant="admin-ghost">
                 <Pencil size={16} />
                 Sửa
@@ -136,7 +136,7 @@ export default function AdminProductDetailPage() {
               <dl className="divide-admin-border divide-y">
                 {p.specifications.map((s) => (
                   <div
-                    key={s.specId}
+                    key={s.id}
                     className="grid grid-cols-[1fr_2fr] px-5 py-2.5 text-sm"
                   >
                     <dt className="text-admin-text-muted">{s.name}</dt>
@@ -154,7 +154,7 @@ export default function AdminProductDetailPage() {
             <div className="divide-admin-border divide-y">
               {p.variants.map((v) => (
                 <div
-                  key={v.variantId}
+                  key={v.id}
                   className="flex items-center justify-between gap-3 px-5 py-3 text-sm"
                 >
                   <div className="min-w-0">
@@ -181,7 +181,7 @@ export default function AdminProductDetailPage() {
                       )}
                     </div>
                     <Link
-                      href={`/admin/products/${p.productId}/variants/${v.variantId}/images`}
+                      href={`/admin/products/${p.id}/variants/${v.id}/images`}
                       className="text-primary-300 text-xs hover:underline"
                     >
                       Quản lý ảnh

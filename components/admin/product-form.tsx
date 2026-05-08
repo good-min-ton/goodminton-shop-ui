@@ -299,7 +299,7 @@ export function ProductForm({
               >
                 <option value={0}>--</option>
                 {(colors.data ?? []).map((c) => (
-                  <option key={c.colorId} value={c.colorId}>
+                  <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
                 ))}
@@ -316,7 +316,7 @@ export function ProductForm({
               >
                 <option value={0}>--</option>
                 {(sizes.data ?? []).map((s) => (
-                  <option key={s.sizeId} value={s.sizeId}>
+                  <option key={s.id} value={s.id}>
                     {s.name}
                   </option>
                 ))}

@@ -55,14 +55,14 @@ export default function StoresMapInner({
           activeStoreId={activeStoreId}
         />
         {validStores.map((s) => {
-          const active = s.storeId === activeStoreId;
+          const active = s.id === activeStoreId;
           return (
             <Marker
-              key={s.storeId}
+              key={s.id}
               position={[s.latitude, s.longitude]}
               icon={createStoreMarkerIcon(active)}
               eventHandlers={{
-                click: () => onMarkerClick?.(s.storeId),
+                click: () => onMarkerClick?.(s.id),
               }}
             >
               <Popup>
@@ -104,7 +104,7 @@ function FlyToActive({
   const map = useMap();
   useEffect(() => {
     if (activeStoreId == null) return;
-    const target = stores.find((s) => s.storeId === activeStoreId);
+    const target = stores.find((s) => s.id === activeStoreId);
     if (!target) return;
     map.flyTo([target.latitude, target.longitude], 15, { duration: 0.6 });
   }, [activeStoreId, stores, map]);

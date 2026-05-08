@@ -45,9 +45,9 @@ export default function ProductDetailPage() {
   const [tab, setTab] = useState<"specs" | "reviews">("specs");
 
   const effectiveVariantId =
-    selectedVariantId ?? product?.variants[0]?.variantId ?? null;
+    selectedVariantId ?? product?.variants[0]?.id ?? null;
   const variant = product?.variants.find(
-    (v) => v.variantId === effectiveVariantId,
+    (v) => v.id === effectiveVariantId,
   );
 
   const galleryImages = useMemo(() => {
@@ -62,14 +62,14 @@ export default function ProductDetailPage() {
     return list;
   }, [product, variant]);
 
-  const reviews = useProductReviews(product?.productId ?? null, 1, 5);
-  const recs = useProductRecommendations(product?.productId ?? null);
+  const reviews = useProductReviews(product?.id ?? null, 1, 5);
+  const recs = useProductRecommendations(product?.id ?? null);
 
   const addItem = useCartStore((s) => s.addItem);
   const openCart = useCartStore((s) => s.open);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
   const isWished = useWishlistStore((s) =>
-    product ? s.has(product.productId) : false,
+    product ? s.has(product.id) : false,
   );
   const trackView = useRecentlyViewedStore((s) => s.track);
 
@@ -77,7 +77,7 @@ export default function ProductDetailPage() {
     if (!product) return;
     const { price, salePrice } = getDisplayPrice(product);
     trackView({
-      productId: product.productId,
+      productId: product.id,
       slug: product.slug,
       name: product.name,
       brandName: product.brand.name,
@@ -90,7 +90,7 @@ export default function ProductDetailPage() {
     if (!product) return;
     const { price, salePrice } = getDisplayPrice(product);
     toggleWishlist({
-      productId: product.productId,
+      productId: product.id,
       slug: product.slug,
       name: product.name,
       brandName: product.brand.name,
@@ -106,8 +106,8 @@ export default function ProductDetailPage() {
   function handleAddToCart() {
     if (!product || !variant) return;
     addItem({
-      variantId: variant.variantId,
-      productId: product.productId,
+      variantId: variant.id,
+      productId: product.id,
       productSlug: product.slug,
       productName: product.name,
       thumbnailUrl: product.thumbnail?.url ?? null,
@@ -327,7 +327,7 @@ export default function ProductDetailPage() {
                   <div className="divide-y divide-stone-200 rounded-xl border border-stone-200">
                     {product.specifications.map((s) => (
                       <div
-                        key={s.specId}
+                        key={s.id}
                         className="grid grid-cols-[1fr_2fr] px-4 py-3 text-sm"
                       >
                         <dt className="text-stone-500">{s.name}</dt>
@@ -350,7 +350,7 @@ export default function ProductDetailPage() {
                 <ul className="space-y-5">
                   {reviews.data.content.map((r) => (
                     <li
-                      key={r.reviewId}
+                      key={r.id}
                       className="rounded-xl border border-stone-200 p-5"
                     >
                       <div className="flex items-baseline justify-between">
@@ -391,7 +391,7 @@ export default function ProductDetailPage() {
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {recs.data.map((r) => (
               <Link
-                key={r.productId}
+                key={r.id}
                 href={`/products/${r.slug}`}
                 className="group flex flex-col overflow-hidden rounded-xl border border-stone-200 bg-white transition-shadow hover:shadow-md"
               >
@@ -421,7 +421,7 @@ export default function ProductDetailPage() {
       )}
 
       <RecentlyViewedSection
-        excludeProductId={product.productId}
+        excludeProductId={product.id}
         className="mt-16"
       />
     </div>

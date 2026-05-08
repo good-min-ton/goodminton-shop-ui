@@ -111,10 +111,10 @@ function PaymentResultContent() {
       <ResultCard
         icon={<CheckCircle2 size={56} className="text-emerald-600" />}
         title="Thanh toán thành công"
-        description={`Đơn hàng #${state.order.orderId} đã được ghi nhận và sẽ sớm được xử lý.`}
+        description={`Đơn hàng #${state.order.id} đã được ghi nhận và sẽ sớm được xử lý.`}
         actions={
           <>
-            <Link href={`/orders/${state.order.orderId}`}>
+            <Link href={`/orders/${state.order.id}`}>
               <Button uppercase>Xem đơn hàng</Button>
             </Link>
             <Link href="/products">
@@ -133,7 +133,7 @@ function PaymentResultContent() {
         title="Đang xử lý"
         description="Hệ thống chưa nhận được xác nhận thanh toán. Đơn hàng đã tạo, bạn có thể kiểm tra lại sau ít phút."
         actions={
-          <Link href={`/orders/${state.order.orderId}`}>
+          <Link href={`/orders/${state.order.id}`}>
             <Button uppercase>Xem đơn hàng</Button>
           </Link>
         }

@@ -139,7 +139,7 @@ export default function AdminAccountsPage() {
             align: "right",
             render: (r: Account) => (
               <Link
-                href={`/admin/accounts/${r.accountId}`}
+                href={`/admin/accounts/${r.id}`}
                 className="text-primary-300 text-xs hover:underline"
               >
                 Chi tiết →
@@ -149,7 +149,7 @@ export default function AdminAccountsPage() {
         ]}
         data={list.data?.content}
         loading={list.isLoading}
-        rowKey={(r) => r.accountId}
+        rowKey={(r) => r.id}
       />
 
       <Pagination

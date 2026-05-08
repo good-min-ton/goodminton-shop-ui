@@ -1,28 +1,21 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import type { UseFormRegister } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-  type UseQueryResult,
-} from "@tanstack/react-query";
-import { AlertCircle, RefreshCw, UserPlus } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { AdminCard } from "@/components/admin/admin-card";
 import { Input, Textarea, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { EmptyState } from "@/components/ui/empty-state";
 import { LocationPicker } from "@/components/map/location-picker";
 import { storesApi } from "@/lib/api/stores";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
-import type { Account } from "@/types/api";
 
 const storeSchema = z
   .object({
@@ -40,9 +33,17 @@ const storeSchema = z
   });
 type FormInput = z.infer<typeof storeSchema>;
 
-export default function CreateStorePage() {
+export default function EditStorePage() {
+  const params = useParams<{ id: string }>();
+  const id = params?.id ? Number(params.id) : 0;
   const router = useRouter();
   const qc = useQueryClient();
+
+  const store = useQuery({
+    queryKey: ["stores", "detail", id],
+    queryFn: () => storesApi.detail(id),
+    enabled: id > 0,
+  });
 
   const availableAdmins = useQuery({
     queryKey: ["stores", "available-admins"],
@@ -56,6 +57,7 @@ export default function CreateStorePage() {
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors },
   } = useForm<FormInput>({
     resolver: zodResolver(storeSchema),
@@ -70,36 +72,72 @@ export default function CreateStorePage() {
     },
   });
 
+  useEffect(() => {
+    if (!store.data) return;
+    reset({
+      name: store.data.name,
+      address: store.data.address,
+      contact: store.data.contact,
+      longitude: store.data.longitude,
+      latitude: store.data.latitude,
+      adminId: store.data.admin?.id ?? 0,
+      isCentral: store.data.isCentral,
+    });
+  }, [store.data, reset]);
+
   const latitude = watch("latitude");
   const longitude = watch("longitude");
   const hasPin = latitude !== 0 || longitude !== 0;
 
-  const create = useMutation({
-    mutationFn: (values: FormInput) => storesApi.create(values),
+  const update = useMutation({
+    mutationFn: (values: FormInput) => storesApi.update(id, values),
     onSuccess: (s) => {
       qc.invalidateQueries({ queryKey: ["stores"] });
       qc.invalidateQueries({ queryKey: ["accounts"] });
-      toast(`Đã tạo chi nhánh ${s.name}`, "success");
-      router.replace("/admin/stores");
+      toast(`Đã cập nhật ${s.name}`, "success");
+      router.replace(`/admin/stores/${id}`);
     },
     onError: (err) => {
-      toast(getErrorMessage(err, "Không tạo được chi nhánh"), "error");
+      toast(getErrorMessage(err, "Không cập nhật được chi nhánh"), "error");
     },
   });
+
+  if (store.isLoading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Spinner className="text-primary-300" size={32} />
+      </div>
+    );
+  }
+
+  if (!store.data) {
+    return <EmptyState title="Không tìm thấy chi nhánh" />;
+  }
+
+  const currentAdmin = store.data.admin;
+  // Merge current admin (already assigned) with available list so user can
+  // keep current selection or switch to a free admin.
+  const adminOptions = [
+    ...(currentAdmin ? [currentAdmin] : []),
+    ...(availableAdmins.data ?? []).filter(
+      (a) => a.id !== currentAdmin?.id,
+    ),
+  ];
 
   return (
     <>
       <AdminPageHeader
-        title="Tạo chi nhánh"
+        title={`Chỉnh sửa ${store.data.name}`}
         breadcrumbs={[
           { label: "Chi nhánh", href: "/admin/stores" },
-          { label: "Tạo mới" },
+          { label: `#${store.data.id}`, href: `/admin/stores/${id}` },
+          { label: "Chỉnh sửa" },
         ]}
       />
 
       <AdminCard className="max-w-3xl">
         <form
-          onSubmit={handleSubmit((v) => create.mutate(v))}
+          onSubmit={handleSubmit((v) => update.mutate(v))}
           className="space-y-5"
         >
           <Input
@@ -131,8 +169,7 @@ export default function CreateStorePage() {
               Vị trí trên bản đồ <span className="text-red-400">*</span>
             </span>
             <p className="text-admin-text-muted -mt-0.5 text-xs">
-              Tìm địa chỉ hoặc click trực tiếp lên bản đồ để pin vị trí. Có thể
-              kéo pin để điều chỉnh.
+              Click hoặc kéo pin để điều chỉnh.
             </p>
             <LocationPicker
               admin
@@ -150,11 +187,28 @@ export default function CreateStorePage() {
             )}
           </div>
 
-          <AdminPicker
-            query={availableAdmins}
-            register={register}
+          <Select
+            label="Quản lý chi nhánh"
+            admin
+            required
             error={errors.adminId?.message}
-          />
+            hint={
+              availableAdmins.isLoading
+                ? "Đang tải danh sách admin..."
+                : `${adminOptions.length} lựa chọn`
+            }
+            {...register("adminId", { valueAsNumber: true })}
+          >
+            <option value={0} disabled>
+              -- Chọn store admin --
+            </option>
+            {adminOptions.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.fullName} · {a.email}
+                {a.id === currentAdmin?.id ? " (hiện tại)" : ""}
+              </option>
+            ))}
+          </Select>
 
           <div className="flex flex-col gap-1.5">
             <span className="text-sm font-medium text-stone-200">
@@ -187,124 +241,13 @@ export default function CreateStorePage() {
             <Button
               type="submit"
               variant="admin-primary"
-              loading={create.isPending}
+              loading={update.isPending}
             >
-              Tạo chi nhánh
+              Lưu thay đổi
             </Button>
           </div>
         </form>
       </AdminCard>
     </>
-  );
-}
-
-interface AdminPickerProps {
-  query: UseQueryResult<Account[], Error>;
-  register: UseFormRegister<FormInput>;
-  error?: string;
-}
-
-function AdminPicker({ query, register, error }: Readonly<AdminPickerProps>) {
-  if (query.isLoading) {
-    return (
-      <div className="flex items-center gap-2 py-2 text-admin-text-muted text-sm">
-        <Spinner size={16} className="text-primary-300" />
-        <span>Đang tải danh sách store admin...</span>
-      </div>
-    );
-  }
-
-  if (query.error) {
-    return (
-      <div className="flex flex-col gap-3 rounded-lg border border-red-500/30 bg-red-500/5 p-4">
-        <div className="flex items-start gap-2.5 text-sm">
-          <AlertCircle
-            size={18}
-            className="mt-0.5 flex-shrink-0 text-red-400"
-          />
-          <div>
-            <p className="font-medium text-red-300">
-              Không tải được danh sách store admin
-            </p>
-            <p className="mt-1 text-xs text-red-300/80">
-              {getErrorMessage(query.error, "Lỗi kết nối backend.")}
-            </p>
-          </div>
-        </div>
-        <Button
-          type="button"
-          variant="admin-ghost"
-          size="sm"
-          onClick={() => query.refetch()}
-        >
-          <RefreshCw size={14} />
-          Thử lại
-        </Button>
-      </div>
-    );
-  }
-
-  const admins = query.data ?? [];
-
-  if (admins.length === 0) {
-    return (
-      <div className="flex flex-col gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
-        <div className="flex items-start gap-2.5 text-sm">
-          <AlertCircle
-            size={18}
-            className="mt-0.5 flex-shrink-0 text-amber-400"
-          />
-          <div>
-            <p className="font-medium text-amber-300">
-              Chưa có store admin nào trống
-            </p>
-            <p className="mt-1 text-xs text-amber-200/80">
-              Tất cả store admin hiện tại đã được gán vào chi nhánh khác. Tạo
-              store admin mới để gán cho chi nhánh này.
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="admin-ghost"
-            size="sm"
-            onClick={() => query.refetch()}
-          >
-            <RefreshCw size={14} />
-            Tải lại
-          </Button>
-          <Link href="/admin/accounts/create-store-admin">
-            <Button type="button" variant="admin-primary" size="sm">
-              <UserPlus size={14} />
-              Tạo store admin mới
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-1.5">
-      <Select
-        label="Quản lý chi nhánh"
-        admin
-        required
-        error={error}
-        hint={`${admins.length} store admin sẵn sàng`}
-        defaultValue=""
-        {...register("adminId", { valueAsNumber: true })}
-      >
-        <option value="" disabled>
-          -- Chọn store admin --
-        </option>
-        {admins.map((a) => (
-          <option key={a.id} value={a.id}>
-            {a.fullName} · {a.email}
-          </option>
-        ))}
-      </Select>
-    </div>
   );
 }

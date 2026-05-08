@@ -81,7 +81,7 @@ export default function AdminInventoriesPage() {
         >
           <option value="">-- Chọn chi nhánh --</option>
           {stores.data?.map((s) => (
-            <option key={s.storeId} value={s.storeId}>
+            <option key={s.id} value={s.id}>
               {s.name}
             </option>
           ))}
@@ -144,7 +144,7 @@ export default function AdminInventoriesPage() {
             ]}
             data={inv.data?.content}
             loading={inv.isLoading}
-            rowKey={(r) => r.inventoryId}
+            rowKey={(r) => r.id}
             emptyText="Chi nhánh này chưa có tồn kho. Thêm variant cho sản phẩm và set quantity."
           />
 

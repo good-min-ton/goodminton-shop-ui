@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, MapPin } from "lucide-react";
+import { Plus, MapPin, Star } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/admin/data-table";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,18 @@ export default function AdminStoresPage() {
             key: "name",
             header: "Tên",
             render: (r: Store) => (
-              <span className="font-medium">{r.name}</span>
+              <span className="inline-flex items-center gap-2 font-medium">
+                {r.name}
+                {r.isCentral && (
+                  <span
+                    title="Kho trung tâm (HQ)"
+                    className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300"
+                  >
+                    <Star size={10} className="fill-amber-300" />
+                    HQ
+                  </span>
+                )}
+              </span>
             ),
           },
           {
@@ -76,7 +87,7 @@ export default function AdminStoresPage() {
             align: "right",
             render: (r: Store) => (
               <Link
-                href={`/admin/stores/${r.storeId}`}
+                href={`/admin/stores/${r.id}`}
                 className="text-primary-300 text-xs hover:underline"
               >
                 Chi tiết →
@@ -86,7 +97,7 @@ export default function AdminStoresPage() {
         ]}
         data={list.data}
         loading={list.isLoading}
-        rowKey={(r) => r.storeId}
+        rowKey={(r) => r.id}
       />
     </>
   );

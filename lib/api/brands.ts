@@ -10,11 +10,11 @@ export const brandsApi = {
     return api.get<Brand>(`/api/brands/${id}`);
   },
 
-  create(body: { brandName: string }) {
+  create(body: { name: string }) {
     return api.post<Brand>("/api/brands", body);
   },
 
-  update(id: number, body: { brandName: string }) {
+  update(id: number, body: { name: string }) {
     return api.put<Brand>(`/api/brands/${id}`, body);
   },
 

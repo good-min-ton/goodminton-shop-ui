@@ -46,7 +46,7 @@ export interface AuthTokens {
 }
 
 export interface Account {
-  accountId: number;
+  id: number;
   fullName: string;
   email: string;
   phone: string;
@@ -83,7 +83,7 @@ export interface Brand {
 }
 
 export interface Color {
-  colorId: number;
+  id: number;
   name: string;
   hexCode?: string; // not in API but useful client-side; leave optional
 }
@@ -91,7 +91,7 @@ export interface Color {
 export type SizeType = "RACKET" | "NON_RACKET";
 
 export interface SizeOption {
-  sizeId: number;
+  id: number;
   name: string;
   type: SizeType;
 }
@@ -110,13 +110,13 @@ export interface ResourceImage {
 }
 
 export interface ProductSpecification {
-  specId: number;
+  id: number;
   name: string;
   value: string;
 }
 
 export interface ProductVariant {
-  variantId: number;
+  id: number;
   color: Color;
   size: SizeOption;
   skuCode: string;
@@ -126,7 +126,7 @@ export interface ProductVariant {
 }
 
 export interface Product {
-  productId: number;
+  id: number;
   category: Category;
   brand: Brand;
   relatedProductId: number | null;
@@ -141,7 +141,7 @@ export interface Product {
 }
 
 export interface RecommendedProduct {
-  productId: number;
+  id: number;
   name: string;
   slug: string;
   thumbnailUrl: string | null;
@@ -154,7 +154,7 @@ export interface RecommendedProduct {
 // ============================================================
 
 export interface Review {
-  reviewId: number;
+  id: number;
   productId: number;
   orderItemId: number;
   customer: Account;
@@ -168,18 +168,19 @@ export interface Review {
 // ============================================================
 
 export interface Store {
-  storeId: number;
+  id: number;
   name: string;
   address: string;
   contact: string;
   longitude: number;
   latitude: number;
+  isCentral: boolean;
   createdAt: string;
   admin: Account | null;
 }
 
 export interface Inventory {
-  inventoryId: number;
+  id: number;
   storeId: number;
   storeName: string;
   variantId: number;
@@ -212,7 +213,7 @@ export type PaymentMethod = "COD" | "BANKING" | "VNPAY";
 export type PaymentStatus = "PENDING" | "PAID" | "FAILED";
 
 export interface OrderItem {
-  orderItemId: number;
+  id: number;
   variantId: number;
   productId: number;
   productName: string;
@@ -225,7 +226,7 @@ export interface OrderItem {
 }
 
 export interface Payment {
-  paymentId: number;
+  id: number;
   method: PaymentMethod;
   status: PaymentStatus;
   amount: number;
@@ -236,7 +237,7 @@ export interface Payment {
 }
 
 export interface Order {
-  orderId: number;
+  id: number;
   customerId: number;
   customerName: string;
   storeId: number | null;

@@ -6,6 +6,7 @@ import {
   ExternalLink,
   MapPin,
   Phone,
+  Star,
   Store as StoreIcon,
   User,
 } from "lucide-react";
@@ -99,10 +100,10 @@ function Content({
       <ul className="space-y-3 lg:order-2 lg:max-h-[560px] lg:overflow-y-auto lg:pr-1">
         {stores.map((s) => (
           <StoreCard
-            key={s.storeId}
+            key={s.id}
             store={s}
-            active={activeId === s.storeId}
-            onSelect={() => onPick(s.storeId)}
+            active={activeId === s.id}
+            onSelect={() => onPick(s.id)}
           />
         ))}
       </ul>
@@ -120,7 +121,7 @@ function StoreCard({ store, active, onSelect }: Readonly<StoreCardProps>) {
   const mapsUrl = `https://www.google.com/maps?q=${store.latitude},${store.longitude}`;
 
   return (
-    <li id={`store-card-${store.storeId}`}>
+    <li id={`store-card-${store.id}`}>
       <button
         type="button"
         onClick={onSelect}
@@ -131,9 +132,20 @@ function StoreCard({ store, active, onSelect }: Readonly<StoreCardProps>) {
             : "border-stone-200 hover:border-stone-300 hover:shadow-md",
         )}
       >
-        <h2 className="font-display text-xl font-extrabold tracking-tight text-stone-900">
-          {store.name}
-        </h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="font-display text-xl font-extrabold tracking-tight text-stone-900">
+            {store.name}
+          </h2>
+          {store.isCentral && (
+            <span
+              title="Kho trung tâm"
+              className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700"
+            >
+              <Star size={10} className="fill-amber-500 text-amber-500" />
+              Trung tâm
+            </span>
+          )}
+        </div>
 
         <dl className="mt-3 space-y-2 text-sm">
           <div className="flex items-start gap-2">

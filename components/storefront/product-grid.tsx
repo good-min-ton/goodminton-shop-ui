@@ -15,6 +15,8 @@ interface ProductGridProps {
   cols?: 2 | 3 | 4;
   /** Number of skeleton cards to show during initial load. */
   skeletonCount?: number;
+  /** Mark the first N cards as priority — eager-load + preload for LCP. */
+  priorityCount?: number;
   className?: string;
 }
 
@@ -31,6 +33,7 @@ export function ProductGrid({
   emptyDescription,
   cols = 4,
   skeletonCount,
+  priorityCount = 0,
   className,
 }: Readonly<ProductGridProps>) {
   if (loading && (!products || products.length === 0)) {
@@ -57,8 +60,8 @@ export function ProductGrid({
 
   return (
     <div className={cn("grid gap-4", colsClass[cols], className)}>
-      {products.map((p) => (
-        <ProductCard key={p.productId} product={p} />
+      {products.map((p, i) => (
+        <ProductCard key={p.id} product={p} priority={i < priorityCount} />
       ))}
     </div>
   );

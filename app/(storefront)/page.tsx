@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { HeroSlider } from "@/components/storefront/hero-slider";
 import { ProductGrid } from "@/components/storefront/product-grid";
 import { RecentlyViewedSection } from "@/components/storefront/recently-viewed-section";
 import { useProductList } from "@/hooks/use-products";
@@ -29,40 +29,7 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="bg-soft-glow border-b border-stone-200">
-        <div className="container-app grid items-center gap-10 py-10 md:grid-cols-[2fr_3fr] md:py-14">
-          <div>
-            <h1 className="font-display text-stone-900 text-5xl leading-[0.95] font-extrabold tracking-tight md:text-6xl">
-              Vợt cầu lông
-              <br />
-              <span className="text-primary-700">chính hãng.</span>
-            </h1>
-            <p className="mt-5 max-w-sm text-stone-500">
-              Yonex, Victor, Lining và nhiều thương hiệu hàng đầu. Giao hàng toàn
-              quốc, đổi trả 7 ngày.
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/products">
-                <Button uppercase>Mua ngay</Button>
-              </Link>
-              <Link href="/categories">
-                <Button variant="secondary">Xem theo danh mục</Button>
-              </Link>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 md:gap-4">
-            <ProductGrid
-              products={featuredProducts.slice(0, 4)}
-              loading={featured.isLoading}
-              cols={2}
-              emptyTitle="Chưa có sản phẩm nào để hiển thị"
-              emptyDescription="Quay lại sau khi cửa hàng đăng sản phẩm đầu tiên."
-              className="col-span-2 grid-cols-2 md:grid-cols-2"
-            />
-          </div>
-        </div>
-      </section>
+      <HeroSlider />
 
       {categories.length > 0 && (
         <section className="container-app py-12">

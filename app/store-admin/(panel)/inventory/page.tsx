@@ -90,7 +90,7 @@ export default function StoreAdminInventoryPage() {
         ]}
         data={filtered}
         loading={inv.isLoading}
-        rowKey={(r) => r.inventoryId}
+        rowKey={(r) => r.id}
         emptyText={
           search
             ? "Không tìm thấy sản phẩm phù hợp"

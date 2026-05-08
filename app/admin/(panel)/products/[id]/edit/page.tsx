@@ -31,7 +31,7 @@ export default function EditProductPage() {
     onSuccess: (p) => {
       qc.invalidateQueries({ queryKey: ["products"] });
       toast("Đã cập nhật sản phẩm", "success");
-      router.replace(`/admin/products/${p.productId}`);
+      router.replace(`/admin/products/${p.id}`);
     },
     onError: (err) => {
       toast(getErrorMessage(err, "Không cập nhật được sản phẩm"), "error");
@@ -58,7 +58,7 @@ export default function EditProductPage() {
         title={`Sửa: ${p.name}`}
         breadcrumbs={[
           { label: "Sản phẩm", href: "/admin/products" },
-          { label: `#${p.productId}`, href: `/admin/products/${p.productId}` },
+          { label: `#${p.id}`, href: `/admin/products/${p.id}` },
           { label: "Sửa" },
         ]}
       />
@@ -77,8 +77,8 @@ export default function EditProductPage() {
             value: s.value,
           })),
           variants: p.variants.map((v) => ({
-            colorId: v.color.colorId,
-            sizeId: v.size.sizeId,
+            colorId: v.color.id,
+            sizeId: v.size.id,
             skuCode: v.skuCode,
             price: v.price,
             salePrice: v.salePrice,

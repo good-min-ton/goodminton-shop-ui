@@ -32,13 +32,13 @@ export function CategoriesDropdown({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
-    window.addEventListener("mousedown", onPointer);
-    window.addEventListener("touchstart", onPointer);
-    window.addEventListener("keydown", onKey);
+    globalThis.addEventListener("mousedown", onPointer);
+    globalThis.addEventListener("touchstart", onPointer);
+    globalThis.addEventListener("keydown", onKey);
     return () => {
-      window.removeEventListener("mousedown", onPointer);
-      window.removeEventListener("touchstart", onPointer);
-      window.removeEventListener("keydown", onKey);
+      globalThis.removeEventListener("mousedown", onPointer);
+      globalThis.removeEventListener("touchstart", onPointer);
+      globalThis.removeEventListener("keydown", onKey);
     };
   }, [open]);
 
@@ -145,22 +145,22 @@ function CategoriesColumn({
         <ul className="max-h-[320px] space-y-0.5 overflow-y-auto pr-2">
           {items.map((c) => (
             <li key={c.id}>
-              <Link
-                href={`/categories/${c.id}`}
-                onClick={onPick}
-                role="menuitem"
-                className="group/item flex items-baseline justify-between gap-3 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-primary-50 hover:text-primary-700"
-              >
-                <span className="font-medium text-stone-800 group-hover/item:text-primary-700">
-                  {c.name}
-                </span>
-                <ArrowRight
-                  size={12}
-                  className="flex-shrink-0 -translate-x-1 text-stone-300 opacity-0 transition group-hover/item:translate-x-0 group-hover/item:text-primary-700 group-hover/item:opacity-100"
-                />
-              </Link>
-            </li>
-          ))}
+                <Link
+                  href={`/categories/${c.id}`}
+                  onClick={onPick}
+                  role="menuitem"
+                  className="group/item flex items-baseline justify-between gap-3 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-primary-50 hover:text-primary-700"
+                >
+                  <span className="font-medium text-stone-800 group-hover/item:text-primary-700">
+                    {c.name}
+                  </span>
+                  <ArrowRight
+                    size={12}
+                    className="flex-shrink-0 -translate-x-1 text-stone-300 opacity-0 transition group-hover/item:translate-x-0 group-hover/item:text-primary-700 group-hover/item:opacity-100"
+                  />
+                </Link>
+              </li>
+            ))}
         </ul>
       </ColumnContent>
     </div>
@@ -188,18 +188,20 @@ function BrandsColumn({ loading, items, onPick }: Readonly<BrandsColumnProps>) {
         isEmpty={visible.length === 0}
       >
         <ul className="grid grid-cols-2 gap-1.5">
-          {visible.map((b) => (
-            <li key={b.id}>
-              <Link
-                href={`/brands/${b.id}`}
-                onClick={onPick}
-                role="menuitem"
-                className="block truncate rounded-md border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700"
-              >
-                {b.name}
-              </Link>
-            </li>
-          ))}
+          {visible
+            .filter((b) => b.id != null)
+            .map((b) => (
+              <li key={b.id}>
+                <Link
+                  href={`/brands/${b.id}`}
+                  onClick={onPick}
+                  role="menuitem"
+                  className="block truncate rounded-md border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700"
+                >
+                  {b.name}
+                </Link>
+              </li>
+            ))}
         </ul>
       </ColumnContent>
     </div>

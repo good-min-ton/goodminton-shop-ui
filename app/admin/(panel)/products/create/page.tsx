@@ -24,7 +24,7 @@ export default function CreateProductPage() {
     onSuccess: (p) => {
       qc.invalidateQueries({ queryKey: ["products"] });
       toast(`Đã tạo sản phẩm "${p.name}"`, "success");
-      router.replace(`/admin/products/${p.productId}`);
+      router.replace(`/admin/products/${p.id}`);
     },
     onError: (err) => {
       toast(getErrorMessage(err, "Không tạo được sản phẩm"), "error");

@@ -77,7 +77,7 @@ export default function PosPage() {
     const products = productsQuery.data?.content ?? [];
     for (const p of products as Product[]) {
       for (const v of p.variants as ProductVariant[]) {
-        map.set(v.variantId, {
+        map.set(v.id, {
           price: v.price,
           salePrice: v.salePrice,
           thumbnailUrl: p.thumbnail?.url ?? null,
@@ -182,10 +182,10 @@ export default function PosPage() {
     onSuccess: (order) => {
       qc.invalidateQueries({ queryKey: ["store-orders"] });
       qc.invalidateQueries({ queryKey: ["my-store-inventory"] });
-      toast(`Đã tạo đơn #${order.orderId}`, "success");
+      toast(`Đã tạo đơn #${order.id}`, "success");
       setLines([]);
       setCustomerId("");
-      router.push(`/store-admin/orders/${order.orderId}`);
+      router.push(`/store-admin/orders/${order.id}`);
     },
     onError: (err) => {
       if (err instanceof ApiException) {
@@ -349,7 +349,7 @@ function PosInventoryGrid({
         const meta = priceMap.get(row.variantId);
         const display = meta?.salePrice ?? meta?.price ?? 0;
         return (
-          <li key={row.inventoryId}>
+          <li key={row.id}>
             <button
               onClick={() => onAdd(row)}
               className="bg-admin-surface-2 hover:border-amber-400 border-admin-border group flex w-full flex-col overflow-hidden rounded-lg border-2 text-left transition-colors"
