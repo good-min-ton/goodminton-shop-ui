@@ -1,10 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useFieldArray, useForm, type SubmitHandler } from "react-hook-form";
+import {
+  Controller,
+  useFieldArray,
+  useForm,
+  type SubmitHandler,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2, ImageIcon } from "lucide-react";
-import { Input, Textarea, Select } from "@/components/ui/input";
+import { Input, Select } from "@/components/ui/input";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { AdminCard } from "@/components/admin/admin-card";
 import {
@@ -161,14 +167,26 @@ export function ProductForm({
             ))}
           </Select>
 
-          <Textarea
-            label="Mô tả"
-            admin
-            rows={4}
-            error={errors.description?.message}
-            containerClassName="lg:col-span-2"
-            {...form.register("description")}
-          />
+          <div className="flex flex-col gap-1.5 lg:col-span-2">
+            <span className="text-sm font-medium text-stone-200">Mô tả</span>
+            <Controller
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <RichTextEditor
+                  admin
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                  placeholder="Mô tả sản phẩm — hỗ trợ heading, list, ảnh, video..."
+                />
+              )}
+            />
+            {errors.description?.message && (
+              <span className="text-[13px] text-red-400">
+                {errors.description.message}
+              </span>
+            )}
+          </div>
         </div>
       </AdminCard>
 

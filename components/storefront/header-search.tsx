@@ -183,7 +183,7 @@ function SearchResults({
                   <img
                     src={p.thumbnail.url}
                     alt={p.name}
-                    className="h-full w-full object-contain p-1"
+                    className="h-full w-full object-contain"
                     loading="lazy"
                   />
                 )}

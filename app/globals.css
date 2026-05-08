@@ -267,3 +267,146 @@ body {
   padding-left: 1.5rem;
   padding-right: 1.5rem;
 }
+
+/* ============================================================
+   Rich-text content (product description + RichTextEditor body)
+   Shared so admin preview matches storefront output 1:1.
+   ============================================================ */
+.rich-text {
+  color: var(--color-text);
+  line-height: 1.65;
+  font-size: 0.9375rem;
+  word-break: break-word;
+}
+.rich-text > :first-child { margin-top: 0; }
+.rich-text > :last-child { margin-bottom: 0; }
+
+.rich-text h1,
+.rich-text h2,
+.rich-text h3,
+.rich-text h4 {
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 1.4em 0 0.5em;
+  letter-spacing: -0.01em;
+}
+.rich-text h1 { font-size: 1.75rem; }
+.rich-text h2 { font-size: 1.4rem; }
+.rich-text h3 { font-size: 1.2rem; }
+.rich-text h4 { font-size: 1.05rem; }
+
+.rich-text p {
+  margin: 0.75em 0;
+}
+
+.rich-text strong { font-weight: 600; color: var(--color-text); }
+.rich-text em { font-style: italic; }
+.rich-text u { text-decoration: underline; }
+.rich-text s { text-decoration: line-through; color: var(--color-text-muted); }
+
+.rich-text a {
+  color: var(--color-primary-700);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rich-text a:hover {
+  color: var(--color-primary-800);
+}
+
+.rich-text ul,
+.rich-text ol {
+  margin: 0.75em 0;
+  padding-left: 1.5em;
+}
+.rich-text ul { list-style: disc; }
+.rich-text ol { list-style: decimal; }
+.rich-text li { margin: 0.25em 0; }
+.rich-text li > p { margin: 0; }
+
+.rich-text blockquote {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  border-left: 3px solid var(--color-primary-300);
+  background: var(--color-stone-50);
+  color: var(--color-text-muted);
+  font-style: italic;
+  border-radius: 0 6px 6px 0;
+}
+
+.rich-text code {
+  background: var(--color-stone-100);
+  border: 1px solid var(--color-stone-200);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+.rich-text pre {
+  background: var(--color-stone-900, #1c1917);
+  color: #fafaf9;
+  padding: 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 1em 0;
+  font-size: 0.85em;
+  line-height: 1.55;
+}
+.rich-text pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+}
+
+.rich-text hr {
+  border: 0;
+  border-top: 1px solid var(--color-stone-200);
+  margin: 1.5em 0;
+}
+
+.rich-text img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1em 0;
+}
+.rich-text iframe,
+.rich-text video {
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 8px;
+  margin: 1em 0;
+}
+
+.rich-text table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.9em;
+}
+.rich-text th,
+.rich-text td {
+  border: 1px solid var(--color-stone-200);
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+.rich-text th { background: var(--color-stone-50); font-weight: 600; }
+
+/* Editor placeholder */
+.tiptap.ProseMirror {
+  outline: none;
+  min-height: 240px;
+}
+.tiptap.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--color-stone-400);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}

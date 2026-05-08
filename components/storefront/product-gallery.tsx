@@ -32,7 +32,7 @@ export function ProductGallery({
             fill
             sizes="(min-width: 1024px) 50vw, 100vw"
             priority
-            className="object-contain p-6"
+            className="object-contain"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-stone-300">
@@ -60,7 +60,7 @@ export function ProductGallery({
                 alt={`${alt} ${idx + 1}`}
                 fill
                 sizes="120px"
-                className="object-contain p-1"
+                className="object-contain"
               />
             </button>
           ))}

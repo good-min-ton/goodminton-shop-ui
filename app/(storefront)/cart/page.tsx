@@ -58,7 +58,7 @@ export default function CartPage() {
                       <img
                         src={item.thumbnailUrl}
                         alt={item.productName}
-                        className="h-full w-full object-contain p-2"
+                        className="h-full w-full object-contain"
                         loading="lazy"
                       />
                     ) : (

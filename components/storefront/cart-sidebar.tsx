@@ -87,7 +87,7 @@ export function CartSidebar() {
                         <img
                           src={item.thumbnailUrl}
                           alt={item.productName}
-                          className="h-full w-full object-contain p-1.5"
+                          className="h-full w-full object-contain"
                           loading="lazy"
                         />
                       ) : (

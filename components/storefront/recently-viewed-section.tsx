@@ -49,7 +49,7 @@ export function RecentlyViewedSection({
                     alt={item.name}
                     fill
                     sizes="(min-width: 768px) 25vw, 50vw"
-                    className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
+                    className="object-contain transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : null}
               </div>

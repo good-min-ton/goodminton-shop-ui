@@ -41,37 +41,31 @@ export function VariantSelector({
     <div className="space-y-5">
       {distinctColors.length > 0 && (
         <div>
-          <div className="mb-2 flex items-baseline justify-between">
-            <span className="text-sm font-medium text-stone-700">Màu sắc</span>
-            {selected && (
-              <span className="text-xs text-stone-500">
-                {selected.color.name}
-              </span>
-            )}
-          </div>
+          <span className="mb-2 block text-sm font-medium text-stone-700">
+            Màu sắc
+          </span>
           <div className="flex flex-wrap gap-2">
             {distinctColors.map((c) => {
               const active = c.id === selectedColorId;
               return (
                 <button
                   key={c.id}
+                  type="button"
                   onClick={() => pickColor(c.id)}
-                  title={c.name}
-                  className={cn(
-                    "h-9 w-9 rounded-full border-2 transition-transform",
-                    active
-                      ? "border-primary-700 scale-110"
-                      : "border-stone-200 hover:border-stone-400",
-                  )}
-                  style={c.hexCode ? { background: c.hexCode } : undefined}
-                  aria-label={c.name}
                   aria-pressed={active}
-                >
-                  {!c.hexCode && (
-                    <span className="font-mono text-[10px] text-stone-700">
-                      {c.name.slice(0, 2)}
-                    </span>
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-full border-[1.5px] px-3 py-1.5 text-sm font-medium transition-all",
+                    active
+                      ? "border-primary-700 bg-primary-50 text-primary-700"
+                      : "border-stone-200 bg-white text-stone-700 hover:border-stone-400",
                   )}
+                >
+                  <span
+                    aria-hidden
+                    className="h-3.5 w-3.5 flex-shrink-0 rounded-full border border-black/10 shadow-sm"
+                    style={{ background: c.hexCode ?? "#d6d3d1" }}
+                  />
+                  <span>{c.name}</span>
                 </button>
               );
             })}
@@ -81,12 +75,9 @@ export function VariantSelector({
 
       {sizesForSelectedColor.length > 0 && (
         <div>
-          <div className="mb-2 flex items-baseline justify-between">
-            <span className="text-sm font-medium text-stone-700">Cỡ</span>
-            {selected && (
-              <span className="text-xs text-stone-500">{selected.size.name}</span>
-            )}
-          </div>
+          <span className="mb-2 block text-sm font-medium text-stone-700">
+            Cỡ
+          </span>
           <div className="flex flex-wrap gap-2">
             {sizesForSelectedColor.map((v) => {
               const active = v.id === selectedVariantId;

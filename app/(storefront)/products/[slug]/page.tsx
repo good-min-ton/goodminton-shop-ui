@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProductGallery } from "@/components/storefront/product-gallery";
+import { HtmlContent } from "@/components/ui/html-content";
 import { VariantSelector } from "@/components/storefront/variant-selector";
 import { RecentlyViewedSection } from "@/components/storefront/recently-viewed-section";
 import { useCartStore } from "@/store/cart-store";
@@ -314,9 +315,10 @@ export default function ProductDetailPage() {
                   <h3 className="font-display mb-2 text-sm font-bold tracking-wider text-stone-900 uppercase">
                     Mô tả
                   </h3>
-                  <p className="leading-relaxed whitespace-pre-line text-stone-600">
-                    {product.description}
-                  </p>
+                  <HtmlContent
+                    html={product.description}
+                    className="text-stone-700"
+                  />
                 </div>
               )}
               {product.specifications.length > 0 && (
@@ -401,7 +403,7 @@ export default function ProductDetailPage() {
                     <img
                       src={r.thumbnailUrl}
                       alt={r.name}
-                      className="h-full w-full object-contain p-4 transition-transform group-hover:scale-105"
+                      className="h-full w-full object-contain transition-transform group-hover:scale-105"
                       loading="lazy"
                     />
                   ) : null}
