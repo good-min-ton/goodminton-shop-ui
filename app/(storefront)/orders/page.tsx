@@ -30,7 +30,7 @@ function OrdersContent() {
   });
 
   const orders = data?.content ?? [];
-  const totalPages = data?.totalPages ?? 1;
+  const totalPages = data?.page.totalPages ?? 1;
 
   return (
     <div className="container-app py-10">
@@ -39,9 +39,9 @@ function OrdersContent() {
           Đơn hàng của tôi
         </h1>
         <p className="mt-2 text-sm text-stone-500">
-          {data?.totalElements != null
-            ? `Tổng cộng ${data.totalElements} đơn`
-            : "Lịch sử các đơn hàng đã đặt"}
+          {data?.page.totalElements == null
+            ? "Lịch sử các đơn hàng đã đặt"
+            : `Tổng cộng ${data.page.totalElements} đơn`}
         </p>
       </div>
 

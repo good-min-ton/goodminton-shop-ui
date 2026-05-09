@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, ImageIcon } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/admin/data-table";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
@@ -30,40 +30,67 @@ export default function AdminCategoriesPage() {
   const [editing, setEditing] = useState<Category | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<Category | null>(null);
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
 
   const form = useForm<FormInput>({
     resolver: zodResolver(categorySchema),
     defaultValues: { name: "", description: "" },
   });
 
+  // Free object URLs we created from picked files; remote URLs are owned by
+  // the server and don't need revocation.
+  useEffect(() => {
+    return () => {
+      if (thumbnailPreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(thumbnailPreview);
+      }
+    };
+  }, [thumbnailPreview]);
+
+  function resetThumbnail(remoteUrl?: string | null) {
+    setThumbnail(null);
+    setThumbnailPreview((prev) => {
+      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return remoteUrl ?? null;
+    });
+  }
+
+  function onPickThumbnail(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    setThumbnail(file);
+    setThumbnailPreview((prev) => {
+      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return file ? URL.createObjectURL(file) : null;
+    });
+  }
+
   function openCreate() {
     form.reset({ name: "", description: "" });
+    resetThumbnail(null);
     setCreating(true);
   }
 
   function openEdit(row: Category) {
     form.reset({ name: row.name, description: row.description ?? "" });
+    resetThumbnail(row.thumbnail?.url ?? null);
     setEditing(row);
   }
 
   function closeForm() {
     form.reset({ name: "", description: "" });
+    resetThumbnail(null);
     setCreating(false);
     setEditing(null);
   }
 
   const upsert = useMutation({
     mutationFn: async (values: FormInput) => {
+      const body = { name: values.name, description: values.description };
       if (editing) {
-        return categoriesApi.update(editing.id, {
-          name: values.name,
-          description: values.description,
-        });
+        return categoriesApi.update(editing.id, body, thumbnail);
       }
-      return categoriesApi.create({
-        name: values.name,
-        description: values.description,
-      });
+      return categoriesApi.create(body, thumbnail);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["categories"] });
@@ -192,6 +219,39 @@ export default function AdminCategoriesPage() {
             error={form.formState.errors.description?.message}
             {...form.register("description")}
           />
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-stone-200">
+              Ảnh đại diện
+            </span>
+            <div className="flex items-start gap-4">
+              <div className="bg-admin-surface-2 flex h-24 w-32 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg">
+                {thumbnailPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={thumbnailPreview}
+                    alt="Thumbnail preview"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <ImageIcon size={28} className="text-admin-text-muted" />
+                )}
+              </div>
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={onPickThumbnail}
+                  className="text-admin-text-muted file:bg-admin-surface-2 file:border-admin-border file:text-admin-text hover:file:bg-admin-surface-2/80 block w-full text-sm file:mr-3 file:rounded-md file:border file:px-3 file:py-1.5 file:text-sm"
+                />
+                <p className="text-admin-text-muted mt-2 text-xs leading-relaxed">
+                  Tỉ lệ 4:3, ≥ 1200×900px. Hiển thị làm nền card danh mục — chừa
+                  vùng góc dưới-trái cho text overlay. Optional khi sửa, bỏ trống
+                  để giữ ảnh cũ.
+                </p>
+              </div>
+            </div>
+          </div>
         </form>
       </Modal>
 

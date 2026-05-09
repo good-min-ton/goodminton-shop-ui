@@ -18,12 +18,20 @@ export interface ApiError {
   message: string;
 }
 
-export interface PageResponse<T> {
-  content: T[];
-  page: number;
+/**
+ * Spring Boot 3+ PagedModel shape: pagination metadata is nested under `page`.
+ * `page.number` is 0-based per Spring convention; FE state still 1-based.
+ */
+export interface PageMeta {
+  number: number;
   size: number;
   totalElements: number;
   totalPages: number;
+}
+
+export interface PageResponse<T> {
+  content: T[];
+  page: PageMeta;
 }
 
 export interface PageQuery {
@@ -75,6 +83,7 @@ export interface Category {
   id: number;
   name: string;
   description?: string;
+  thumbnail: ResourceImage | null;
 }
 
 export interface Brand {

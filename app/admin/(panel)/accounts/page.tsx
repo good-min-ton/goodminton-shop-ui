@@ -154,8 +154,9 @@ export default function AdminAccountsPage() {
 
       <Pagination
         page={page}
-        totalPages={list.data?.totalPages ?? 1}
+        totalPages={list.data?.page.totalPages ?? 1}
         onPageChange={setPage}
+        admin
         className="mt-6"
       />
     </>

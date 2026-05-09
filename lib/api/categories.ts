@@ -1,6 +1,11 @@
 import { api } from "@/lib/api";
 import type { Category } from "@/types/api";
 
+export interface CategoryWriteBody {
+  name: string;
+  description?: string;
+}
+
 export const categoriesApi = {
   list() {
     return api.get<Category[]>("/api/categories");
@@ -10,12 +15,24 @@ export const categoriesApi = {
     return api.get<Category>(`/api/categories/${id}`);
   },
 
-  create(body: { name: string; description?: string }) {
-    return api.post<Category>("/api/categories", body);
+  create(body: CategoryWriteBody, thumbnail?: File | null) {
+    const fd = new FormData();
+    fd.append(
+      "categoryInfo",
+      new Blob([JSON.stringify(body)], { type: "application/json" }),
+    );
+    if (thumbnail) fd.append("thumbnail", thumbnail);
+    return api.upload<Category>("/api/categories", fd);
   },
 
-  update(id: number, body: { name: string; description?: string }) {
-    return api.put<Category>(`/api/categories/${id}`, body);
+  update(id: number, body: CategoryWriteBody, thumbnail?: File | null) {
+    const fd = new FormData();
+    fd.append(
+      "categoryInfo",
+      new Blob([JSON.stringify(body)], { type: "application/json" }),
+    );
+    if (thumbnail) fd.append("thumbnail", thumbnail);
+    return api.upload<Category>(`/api/categories/${id}`, fd, { method: "PUT" });
   },
 
   remove(id: number) {

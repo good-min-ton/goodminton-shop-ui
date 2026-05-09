@@ -8,6 +8,8 @@ interface PaginationProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   className?: string;
+  /** Switch palette to admin (dark) theme. */
+  admin?: boolean;
 }
 
 export function Pagination({
@@ -15,10 +17,22 @@ export function Pagination({
   totalPages,
   onPageChange,
   className,
+  admin = false,
 }: Readonly<PaginationProps>) {
   if (totalPages <= 1) return null;
 
   const pages = buildRange(page, totalPages);
+
+  const navBtn = admin
+    ? "text-admin-text-muted hover:bg-admin-surface-2 hover:text-admin-text"
+    : "text-stone-500 hover:bg-stone-100 hover:text-stone-900";
+  const ellipsisCls = admin ? "text-admin-text-muted" : "text-stone-400";
+  const inactiveCls = admin
+    ? "text-admin-text-muted hover:bg-admin-surface-2 hover:text-admin-text"
+    : "text-stone-700 hover:bg-stone-100";
+  const activeCls = admin
+    ? "bg-primary-500 text-white"
+    : "bg-primary-700 text-white";
 
   return (
     <nav
@@ -28,7 +42,10 @@ export function Pagination({
       <button
         onClick={() => onPageChange(page - 1)}
         disabled={page <= 1}
-        className="rounded-md p-2 text-stone-500 hover:bg-stone-100 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-40"
+        className={cn(
+          "rounded-md p-2 disabled:cursor-not-allowed disabled:opacity-40",
+          navBtn,
+        )}
         aria-label="Trang trước"
       >
         <ChevronLeft size={16} />
@@ -38,7 +55,7 @@ export function Pagination({
         p === "ellipsis" ? (
           <span
             key={`ellipsis-${idx}`}
-            className="px-2 text-sm text-stone-400"
+            className={cn("px-2 text-sm", ellipsisCls)}
           >
             …
           </span>
@@ -48,9 +65,7 @@ export function Pagination({
             onClick={() => onPageChange(p)}
             className={cn(
               "min-w-[36px] rounded-md px-2.5 py-1.5 font-mono text-sm transition-colors",
-              p === page
-                ? "bg-primary-700 text-white"
-                : "text-stone-700 hover:bg-stone-100",
+              p === page ? activeCls : inactiveCls,
             )}
           >
             {p}
@@ -61,7 +76,10 @@ export function Pagination({
       <button
         onClick={() => onPageChange(page + 1)}
         disabled={page >= totalPages}
-        className="rounded-md p-2 text-stone-500 hover:bg-stone-100 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-40"
+        className={cn(
+          "rounded-md p-2 disabled:cursor-not-allowed disabled:opacity-40",
+          navBtn,
+        )}
         aria-label="Trang sau"
       >
         <ChevronRight size={16} />

@@ -16,8 +16,13 @@ import { useProductBySlug } from "@/hooks/use-product-by-slug";
 import {
   getDisplayPrice,
   useProductRecommendations,
-  useProductReviews,
 } from "@/hooks/use-products";
+import {
+  ProductReviewsSection,
+  RatingStars,
+} from "@/components/storefront/product-reviews-section";
+import { useQuery } from "@tanstack/react-query";
+import { reviewsApi } from "@/lib/api/reviews";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -29,7 +34,7 @@ import { useCartStore } from "@/store/cart-store";
 import { useWishlistStore } from "@/store/wishlist-store";
 import { useRecentlyViewedStore } from "@/store/recently-viewed-store";
 import { toast } from "@/store/toast-store";
-import { cn, formatVnd, formatDateTime, clamp } from "@/lib/utils";
+import { cn, formatVnd, clamp } from "@/lib/utils";
 
 export default function ProductDetailPage() {
   const params = useParams<{ slug: string }>();
@@ -63,8 +68,21 @@ export default function ProductDetailPage() {
     return list;
   }, [product, variant]);
 
-  const reviews = useProductReviews(product?.id ?? null, 1, 5);
+  const reviewSummary = useQuery({
+    queryKey: ["reviews", "all", product?.id ?? 0],
+    queryFn: () =>
+      reviewsApi.list(product!.id, { page: 1, size: 500, sortBy: "createdAt", sortDir: "desc" }),
+    enabled: product != null,
+    staleTime: 60 * 1000,
+  });
   const recs = useProductRecommendations(product?.id ?? null);
+
+  const reviewStats = (() => {
+    const list = reviewSummary.data?.content ?? [];
+    if (list.length === 0) return { count: 0, avg: 0 };
+    const sum = list.reduce((s, r) => s + r.rating, 0);
+    return { count: list.length, avg: sum / list.length };
+  })();
 
   const addItem = useCartStore((s) => s.addItem);
   const openCart = useCartStore((s) => s.open);
@@ -190,6 +208,22 @@ export default function ProductDetailPage() {
             {product.name}
           </h1>
 
+          {reviewStats.count > 0 && (
+            <button
+              type="button"
+              onClick={() => setTab("reviews")}
+              className="mt-3 inline-flex items-center gap-2 text-xs text-stone-500 hover:text-stone-900"
+            >
+              <RatingStars rating={reviewStats.avg} size={14} />
+              <span>
+                <span className="font-mono text-stone-700">
+                  {reviewStats.avg.toFixed(1)}
+                </span>{" "}
+                · {reviewStats.count} đánh giá
+              </span>
+            </button>
+          )}
+
           <div className="mt-5 flex items-baseline gap-3">
             <span className="font-mono text-3xl font-medium text-primary-700">
               {formatVnd(displayPrice)}
@@ -303,7 +337,7 @@ export default function ProductDetailPage() {
             active={tab === "reviews"}
             onClick={() => setTab("reviews")}
           >
-            Đánh giá ({reviews.data?.totalElements ?? 0})
+            Đánh giá ({reviewStats.count})
           </TabButton>
         </div>
 
@@ -343,44 +377,10 @@ export default function ProductDetailPage() {
           )}
 
           {tab === "reviews" && (
-            <div className="max-w-3xl">
-              {reviews.isLoading ? (
-                <div className="py-8 text-center">
-                  <Spinner className="text-primary-700" />
-                </div>
-              ) : reviews.data?.content.length ? (
-                <ul className="space-y-5">
-                  {reviews.data.content.map((r) => (
-                    <li
-                      key={r.id}
-                      className="rounded-xl border border-stone-200 p-5"
-                    >
-                      <div className="flex items-baseline justify-between">
-                        <span className="font-medium text-stone-900">
-                          {r.customer.fullName}
-                        </span>
-                        <span className="font-mono text-xs text-stone-400">
-                          {formatDateTime(r.createdAt)}
-                        </span>
-                      </div>
-                      <div className="mt-1 text-amber-500">
-                        {"★".repeat(r.rating)}
-                        <span className="text-stone-300">
-                          {"★".repeat(5 - r.rating)}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                        {r.comment}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="py-6 text-sm text-stone-500">
-                  Sản phẩm chưa có đánh giá nào.
-                </p>
-              )}
-            </div>
+            <ProductReviewsSection
+              productId={product.id}
+              productName={product.name}
+            />
           )}
         </div>
       </div>

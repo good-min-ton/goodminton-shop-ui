@@ -146,8 +146,9 @@ export default function AdminInventoriesPage() {
 
           <Pagination
             page={page}
-            totalPages={inv.data?.totalPages ?? 1}
+            totalPages={inv.data?.page.totalPages ?? 1}
             onPageChange={setPage}
+        admin
             className="mt-6"
           />
         </>
