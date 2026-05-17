@@ -21,7 +21,6 @@ const STEPS: Step[] = [
 
 interface OrderTimelineProps {
   current: OrderStatus;
-  /** When CANCELLED, show all-cancelled state. */
   className?: string;
   theme?: "light" | "dark";
   layout?: "horizontal" | "vertical";
@@ -41,37 +40,16 @@ export function OrderTimeline({
 
   if (layout === "vertical") {
     return (
-      <ol className={cn("space-y-3", className)}>
-        {STEPS.map((step, idx) => {
-          const state = stepState(idx, currentIdx);
-          return (
-            <TimelineRow key={step.key} step={step} state={state} theme={theme} />
-          );
-        })}
-      </ol>
+      <VerticalTimeline currentIdx={currentIdx} className={className} theme={theme} />
     );
   }
 
   return (
-    <ol
-      className={cn(
-        "flex items-start gap-1 overflow-x-auto md:gap-0",
-        className,
-      )}
-    >
-      {STEPS.map((step, idx) => {
-        const state = stepState(idx, currentIdx);
-        return (
-          <TimelineCol
-            key={step.key}
-            step={step}
-            state={state}
-            theme={theme}
-            isLast={idx === STEPS.length - 1}
-          />
-        );
-      })}
-    </ol>
+    <HorizontalTimeline
+      currentIdx={currentIdx}
+      className={className}
+      theme={theme}
+    />
   );
 }
 
@@ -83,51 +61,130 @@ function stepState(idx: number, currentIdx: number): StepState {
   return "pending";
 }
 
-interface RowProps {
-  step: Step;
-  state: StepState;
+interface InnerProps {
+  currentIdx: number;
+  className?: string;
   theme: "light" | "dark";
 }
 
-function TimelineRow({ step, state, theme }: Readonly<RowProps>) {
-  const Icon = step.icon;
+function HorizontalTimeline({
+  currentIdx,
+  className,
+  theme,
+}: Readonly<InnerProps>) {
   return (
-    <li className="flex items-center gap-3 text-sm">
-      <CircleIcon Icon={Icon} state={state} theme={theme} />
-      <span className={labelClass(state, theme)}>{step.label}</span>
-    </li>
+    <div className={className}>
+      {/* Mobile: vertical list — horizontal would cramp 6 steps on small screens */}
+      <ol className="space-y-4 sm:hidden">
+        {STEPS.map((step, idx) => {
+          const state = stepState(idx, currentIdx);
+          const isLast = idx === STEPS.length - 1;
+          return (
+            <li key={step.key} className="flex gap-3">
+              <div className="flex flex-col items-center">
+                <CircleIcon Icon={step.icon} state={state} theme={theme} />
+                {!isLast && (
+                  <div
+                    className={cn(
+                      "mt-1 w-0.5 flex-1 rounded",
+                      connectorClass(state, theme),
+                    )}
+                  />
+                )}
+              </div>
+              <div className="flex-1 pt-1.5 pb-3">
+                <p className={cn("text-sm", labelClass(state, theme))}>
+                  {step.label}
+                </p>
+                {state === "active" && (
+                  <p
+                    className={cn(
+                      "mt-0.5 text-xs",
+                      theme === "dark"
+                        ? "text-amber-400/80"
+                        : "text-primary-700/80",
+                    )}
+                  >
+                    Đang xử lý
+                  </p>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+
+      {/* Desktop: horizontal stepper with connectors between */}
+      <ol className="hidden sm:flex sm:items-start">
+        {STEPS.map((step, idx) => {
+          const state = stepState(idx, currentIdx);
+          const isLast = idx === STEPS.length - 1;
+          return (
+            <li
+              key={step.key}
+              className={cn(
+                "flex items-start",
+                isLast ? "flex-shrink-0" : "flex-1",
+              )}
+            >
+              <div className="flex flex-col items-center gap-2">
+                <CircleIcon Icon={step.icon} state={state} theme={theme} />
+                <span
+                  className={cn(
+                    "max-w-[100px] text-center text-xs leading-tight",
+                    labelClass(state, theme),
+                  )}
+                >
+                  {step.label}
+                </span>
+              </div>
+              {!isLast && (
+                <div
+                  aria-hidden
+                  className={cn(
+                    "mt-[15px] h-0.5 flex-1 rounded transition-colors",
+                    connectorClass(state, theme),
+                  )}
+                />
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }
 
-interface ColProps extends RowProps {
-  isLast: boolean;
-}
-
-function TimelineCol({ step, state, theme, isLast }: Readonly<ColProps>) {
-  const Icon = step.icon;
+function VerticalTimeline({
+  currentIdx,
+  className,
+  theme,
+}: Readonly<InnerProps>) {
   return (
-    <li className="flex flex-1 flex-col items-center md:flex-row md:items-start">
-      <div className="flex w-full flex-col items-center md:flex-row">
-        <CircleIcon Icon={Icon} state={state} theme={theme} />
-        {!isLast && (
-          <div
-            className={cn(
-              "h-px flex-1",
-              connectorClass(state, theme),
-              "hidden md:block",
-            )}
-          />
-        )}
-      </div>
-      <span
-        className={cn(
-          "mt-2 max-w-[80px] text-center text-[11px] leading-tight md:absolute md:-mt-0",
-          labelClass(state, theme),
-        )}
-      >
-        {step.label}
-      </span>
-    </li>
+    <ol className={cn("space-y-3", className)}>
+      {STEPS.map((step, idx) => {
+        const state = stepState(idx, currentIdx);
+        const isLast = idx === STEPS.length - 1;
+        return (
+          <li key={step.key} className="flex gap-3 text-sm">
+            <div className="flex flex-col items-center">
+              <CircleIcon Icon={step.icon} state={state} theme={theme} />
+              {!isLast && (
+                <div
+                  className={cn(
+                    "mt-1 w-0.5 flex-1 rounded",
+                    connectorClass(state, theme),
+                  )}
+                />
+              )}
+            </div>
+            <span className={cn("pt-1.5", labelClass(state, theme))}>
+              {step.label}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
@@ -141,11 +198,20 @@ function CircleIcon({ Icon, state, theme }: Readonly<CircleProps>) {
   return (
     <span
       className={cn(
-        "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ring-2 transition-colors",
+        "relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full transition-colors",
         circleClass(state, theme),
       )}
     >
-      <Icon size={14} />
+      {state === "active" && (
+        <span
+          aria-hidden
+          className={cn(
+            "absolute inset-0 animate-ping rounded-full opacity-40",
+            theme === "dark" ? "bg-amber-400" : "bg-primary-500",
+          )}
+        />
+      )}
+      <Icon size={14} className="relative" />
     </span>
   );
 }
@@ -153,34 +219,34 @@ function CircleIcon({ Icon, state, theme }: Readonly<CircleProps>) {
 function circleClass(state: StepState, theme: "light" | "dark") {
   if (state === "done") {
     return theme === "dark"
-      ? "bg-emerald-500/20 text-emerald-400 ring-emerald-500/30"
-      : "bg-primary-100 text-primary-700 ring-primary-200";
+      ? "bg-emerald-500 text-stone-900 shadow-sm"
+      : "bg-primary-700 text-white shadow-sm";
   }
   if (state === "active") {
     return theme === "dark"
-      ? "bg-amber-400 text-stone-900 ring-amber-300/40"
-      : "bg-primary-700 text-white ring-primary-200";
+      ? "bg-amber-400 text-stone-900 ring-4 ring-amber-400/20"
+      : "bg-primary-700 text-white ring-4 ring-primary-200";
   }
   return theme === "dark"
-    ? "bg-admin-surface-2 text-admin-text-muted ring-admin-border"
-    : "bg-stone-100 text-stone-400 ring-stone-200";
+    ? "bg-admin-surface-2 text-admin-text-muted ring-1 ring-admin-border"
+    : "bg-stone-100 text-stone-400 ring-1 ring-stone-200";
 }
 
 function labelClass(state: StepState, theme: "light" | "dark") {
   if (state === "active") {
     return theme === "dark"
-      ? "text-admin-text font-medium"
-      : "text-stone-900 font-medium";
+      ? "text-admin-text font-semibold"
+      : "text-stone-900 font-semibold";
   }
   if (state === "done") {
-    return theme === "dark" ? "text-admin-text-muted" : "text-stone-600";
+    return theme === "dark" ? "text-emerald-400" : "text-primary-700";
   }
-  return theme === "dark" ? "text-admin-text-muted/60" : "text-stone-400";
+  return theme === "dark" ? "text-admin-text-muted/70" : "text-stone-400";
 }
 
 function connectorClass(state: StepState, theme: "light" | "dark") {
   if (state === "done") {
-    return theme === "dark" ? "bg-emerald-500/40" : "bg-primary-400";
+    return theme === "dark" ? "bg-emerald-500" : "bg-primary-500";
   }
   return theme === "dark" ? "bg-admin-border" : "bg-stone-200";
 }
@@ -192,7 +258,7 @@ function CancelledState({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-lg p-4 text-sm",
+        "flex items-center gap-3 rounded-xl p-4 text-sm",
         theme === "dark"
           ? "bg-red-500/10 text-red-400"
           : "bg-red-50 text-red-700",
@@ -201,7 +267,7 @@ function CancelledState({
     >
       <span
         className={cn(
-          "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full",
+          "flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full",
           theme === "dark" ? "bg-red-500/20" : "bg-red-100",
         )}
       >

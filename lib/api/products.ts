@@ -3,7 +3,7 @@ import type {
   PageQuery,
   PageResponse,
   Product,
-  RecommendedProduct,
+  ProductListItem,
   ResourceImage,
 } from "@/types/api";
 
@@ -17,7 +17,7 @@ export const productsApi = {
   },
 
   recommendations(productId: number) {
-    return api.get<RecommendedProduct[]>(
+    return api.get<ProductListItem[]>(
       `/api/products/${productId}/recommendations`,
     );
   },

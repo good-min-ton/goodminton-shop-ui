@@ -4,16 +4,20 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, Trash2, ImageIcon } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/page-header";
+import { AdminSearchBar } from "@/components/admin/admin-search-bar";
 import { DataTable } from "@/components/admin/data-table";
+import { Pagination } from "@/components/storefront/pagination";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { Modal } from "@/components/ui/modal";
 import { Input, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { categoriesApi } from "@/lib/api/categories";
+import { searchApi } from "@/lib/api/search";
 import { useCategories } from "@/hooks/use-catalog";
+import { useDebouncedValue } from "@/hooks/use-debounce";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 import type { Category } from "@/types/api";
@@ -26,7 +30,24 @@ type FormInput = z.infer<typeof categorySchema>;
 
 export default function AdminCategoriesPage() {
   const qc = useQueryClient();
-  const list = useCategories();
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState("");
+  const debouncedQ = useDebouncedValue(query.trim(), 300);
+  const useSearch = debouncedQ.length >= 2;
+
+  const list = useCategories({ enabled: !useSearch });
+  const search = useQuery({
+    queryKey: ["search", "categories", debouncedQ, page],
+    queryFn: () => searchApi.categories({ q: debouncedQ, page, size: 20 }),
+    enabled: useSearch,
+    placeholderData: (prev) => prev,
+    staleTime: 30 * 1000,
+  });
+
+  const data = useSearch ? (search.data?.content ?? []) : (list.data ?? []);
+  const loading = useSearch ? search.isLoading : list.isLoading;
+  const totalPages = useSearch ? (search.data?.page.totalPages ?? 1) : 1;
+
   const [editing, setEditing] = useState<Category | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<Category | null>(null);
@@ -127,6 +148,16 @@ export default function AdminCategoriesPage() {
         }
       />
 
+      <AdminSearchBar
+        value={query}
+        onChange={(v) => {
+          setQuery(v);
+          setPage(1);
+        }}
+        placeholder="Tìm danh mục theo tên..."
+        className="mb-4"
+      />
+
       <DataTable
         columns={[
           {
@@ -170,9 +201,22 @@ export default function AdminCategoriesPage() {
             ),
           },
         ]}
-        data={list.data}
-        loading={list.isLoading}
+        data={data}
+        loading={loading}
         rowKey={(r) => r.id}
+        emptyText={
+          useSearch
+            ? "Không tìm thấy danh mục phù hợp"
+            : "Chưa có danh mục nào"
+        }
+      />
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        admin
+        className="mt-6"
       />
 
       <Modal

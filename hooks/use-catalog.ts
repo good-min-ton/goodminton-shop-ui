@@ -5,19 +5,25 @@ import { brandsApi } from "@/lib/api/brands";
 import { categoriesApi } from "@/lib/api/categories";
 import { colorsApi, sizesApi } from "@/lib/api/colors-sizes";
 
-export function useCategories() {
+interface CatalogQueryOptions {
+  enabled?: boolean;
+}
+
+export function useCategories(options: CatalogQueryOptions = {}) {
   return useQuery({
     queryKey: ["categories", "list"],
     queryFn: () => categoriesApi.list(),
     staleTime: 10 * 60 * 1000,
+    enabled: options.enabled,
   });
 }
 
-export function useBrands() {
+export function useBrands(options: CatalogQueryOptions = {}) {
   return useQuery({
     queryKey: ["brands", "list"],
     queryFn: () => brandsApi.list(),
     staleTime: 10 * 60 * 1000,
+    enabled: options.enabled,
   });
 }
 

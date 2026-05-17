@@ -149,7 +149,11 @@ export interface Product {
   variants: ProductVariant[];
 }
 
-export interface RecommendedProduct {
+/**
+ * Lightweight product shape returned by recommendations + search endpoints.
+ * Just enough for cards: id, name, slug, thumb, price.
+ */
+export interface ProductListItem {
   id: number;
   name: string;
   slug: string;

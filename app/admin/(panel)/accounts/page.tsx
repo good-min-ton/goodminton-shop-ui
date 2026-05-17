@@ -5,10 +5,13 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/page-header";
+import { AdminSearchBar } from "@/components/admin/admin-search-bar";
 import { DataTable } from "@/components/admin/data-table";
 import { Pagination } from "@/components/storefront/pagination";
 import { Button } from "@/components/ui/button";
 import { accountsApi } from "@/lib/api/accounts";
+import { searchApi } from "@/lib/api/search";
+import { useDebouncedValue } from "@/hooks/use-debounce";
 import { formatDateTime } from "@/lib/utils";
 import type { Account, Role } from "@/types/api";
 
@@ -27,6 +30,9 @@ const ROLE_BADGE: Record<Role, string> = {
 export default function AdminAccountsPage() {
   const [page, setPage] = useState(1);
   const [role, setRole] = useState<Role | "">("");
+  const [query, setQuery] = useState("");
+  const debouncedQ = useDebouncedValue(query.trim(), 300);
+  const useSearch = debouncedQ.length >= 2;
 
   const list = useQuery({
     queryKey: ["accounts", "list", { page, role }],
@@ -38,8 +44,20 @@ export default function AdminAccountsPage() {
         sortDir: "desc",
         role: role || undefined,
       }),
+    enabled: !useSearch,
     refetchOnMount: "always",
   });
+
+  const search = useQuery({
+    queryKey: ["search", "accounts", debouncedQ, page],
+    queryFn: () => searchApi.accounts({ q: debouncedQ, page, size: 20 }),
+    enabled: useSearch,
+    placeholderData: (prev) => prev,
+    staleTime: 30 * 1000,
+  });
+
+  const active = useSearch ? search : list;
+  const totalPages = active.data?.page.totalPages ?? 1;
 
   return (
     <>
@@ -56,21 +74,35 @@ export default function AdminAccountsPage() {
         }
       />
 
-      <div className="mb-4 flex items-center gap-2">
-        <span className="text-admin-text-muted text-xs">Lọc theo vai trò:</span>
-        <select
-          value={role}
-          onChange={(e) => {
-            setRole(e.target.value as Role | "");
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <AdminSearchBar
+          value={query}
+          onChange={(v) => {
+            setQuery(v);
             setPage(1);
           }}
-          className="bg-admin-surface text-admin-text border-admin-border rounded-md border px-3 py-1.5 text-sm focus:border-primary-400 focus:outline-none"
-        >
-          <option value="">Tất cả</option>
-          <option value="CUSTOMER">Khách hàng</option>
-          <option value="STORE_ADMIN">Store Admin</option>
-          <option value="SUPER_ADMIN">Super Admin</option>
-        </select>
+          placeholder="Tìm theo tên, email, số điện thoại..."
+        />
+        {!useSearch && (
+          <div className="flex items-center gap-2">
+            <span className="text-admin-text-muted text-xs">
+              Lọc theo vai trò:
+            </span>
+            <select
+              value={role}
+              onChange={(e) => {
+                setRole(e.target.value as Role | "");
+                setPage(1);
+              }}
+              className="bg-admin-surface text-admin-text border-admin-border rounded-md border px-3 py-1.5 text-sm focus:border-primary-400 focus:outline-none"
+            >
+              <option value="">Tất cả</option>
+              <option value="CUSTOMER">Khách hàng</option>
+              <option value="STORE_ADMIN">Store Admin</option>
+              <option value="SUPER_ADMIN">Super Admin</option>
+            </select>
+          </div>
+        )}
       </div>
 
       <DataTable
@@ -147,14 +179,14 @@ export default function AdminAccountsPage() {
             ),
           },
         ]}
-        data={list.data?.content}
-        loading={list.isLoading}
+        data={active.data?.content}
+        loading={active.isLoading}
         rowKey={(r) => r.id}
       />
 
       <Pagination
         page={page}
-        totalPages={list.data?.page.totalPages ?? 1}
+        totalPages={totalPages}
         onPageChange={setPage}
         admin
         className="mt-6"
