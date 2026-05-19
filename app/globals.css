@@ -74,10 +74,13 @@
    ============================================================ */
 
 @theme inline {
-  --font-display: var(--font-display-family), ui-sans-serif, system-ui,
-    sans-serif;
+  /* Display + sans share the same family (Geist) — tone separation comes from
+     weight + tracking on heading utilities. */
+  --font-display: var(--font-sans-family), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-sans-family), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-mono-family), ui-monospace, monospace;
+  /* No dedicated mono typeface — reuse Geist with tabular figures for the
+     `font-mono` utility so price/SKU columns still align cleanly. */
+  --font-mono: var(--font-sans-family), ui-sans-serif, system-ui, sans-serif;
 
   --color-bg: var(--color-bg);
   --color-surface: var(--color-surface);
@@ -277,6 +280,9 @@ body {
   line-height: 1.65;
   font-size: 0.9375rem;
   word-break: break-word;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
 }
 .rich-text > :first-child { margin-top: 0; }
 .rich-text > :last-child { margin-bottom: 0; }
@@ -371,7 +377,7 @@ body {
   max-width: 100%;
   height: auto;
   border-radius: 8px;
-  margin: 1em 0;
+  margin: 1.25em auto;
 }
 .rich-text iframe,
 .rich-text video {
@@ -381,7 +387,7 @@ body {
   aspect-ratio: 16 / 9;
   border: 0;
   border-radius: 8px;
-  margin: 1em 0;
+  margin: 1.25em auto;
 }
 
 .rich-text table {
@@ -409,4 +415,58 @@ body {
   pointer-events: none;
   float: left;
   height: 0;
+}
+
+
+/* Apply tabular figures wherever `font-mono` was used (price, SKU, ids, dates).
+   Same family as body (Geist) — only digit spacing changes for column alignment. */
+.font-mono,
+code,
+kbd,
+samp,
+pre {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Rich-text on dark surfaces (admin editor). Overrides the default light-mode
+   colors hard-coded in `.rich-text` so editable content stays legible. */
+.rich-text--dark {
+  color: var(--admin-text);
+}
+.rich-text--dark h1,
+.rich-text--dark h2,
+.rich-text--dark h3,
+.rich-text--dark h4,
+.rich-text--dark strong {
+  color: var(--admin-text);
+}
+.rich-text--dark a {
+  color: var(--color-primary-300);
+}
+.rich-text--dark a:hover {
+  color: var(--color-primary-200);
+}
+.rich-text--dark blockquote {
+  border-left-color: var(--color-primary-400);
+  background: var(--admin-surface-2);
+  color: var(--admin-text-muted);
+}
+.rich-text--dark code {
+  background: var(--admin-surface-2);
+  border-color: var(--admin-border);
+  color: var(--admin-text);
+}
+.rich-text--dark hr {
+  border-top-color: var(--admin-border);
+}
+.rich-text--dark th,
+.rich-text--dark td {
+  border-color: var(--admin-border);
+}
+.rich-text--dark th {
+  background: var(--admin-surface-2);
+}
+.rich-text--dark s {
+  color: var(--admin-text-muted);
 }

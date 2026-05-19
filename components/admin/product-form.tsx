@@ -77,7 +77,12 @@ export function ProductForm({
     control: form.control,
     name: "specifications",
   });
-  const variants = useFieldArray({ control: form.control, name: "variants" });
+  // `keyName` avoids RHF clobbering our variant DB `id` with its own React key.
+  const variants = useFieldArray({
+    control: form.control,
+    name: "variants",
+    keyName: "_rhfKey",
+  });
 
   const watchName = form.watch("name");
   const watchSlug = form.watch("slug");
@@ -302,7 +307,7 @@ export function ProductForm({
         <div className="space-y-3">
           {variants.fields.map((field, idx) => (
             <div
-              key={field.id}
+              key={field._rhfKey}
               className="bg-admin-surface-2 grid grid-cols-12 gap-2 rounded-lg p-3"
             >
               <Select

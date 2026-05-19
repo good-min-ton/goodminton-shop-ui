@@ -1,26 +1,13 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, DM_Sans, DM_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers/providers";
 
-const fontDisplay = Bricolage_Grotesque({
-  variable: "--font-display-family",
-  subsets: ["latin", "latin-ext", "vietnamese"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-});
-
-const fontSans = DM_Sans({
+// Single typeface for the entire site. Headings vary by weight + tracking;
+// numeric columns (price/SKU) use the same family with `tabular-nums`.
+const fontSans = Geist({
   variable: "--font-sans-family",
   subsets: ["latin", "latin-ext"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-});
-
-const fontMono = DM_Mono({
-  variable: "--font-mono-family",
-  subsets: ["latin"],
-  weight: ["400", "500"],
   display: "swap",
 });
 
@@ -73,7 +60,7 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${fontDisplay.variable} ${fontSans.variable} ${fontMono.variable} h-full antialiased`}
+      className={`${fontSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>

@@ -52,9 +52,7 @@ export default function ProductDetailPage() {
 
   const effectiveVariantId =
     selectedVariantId ?? product?.variants[0]?.id ?? null;
-  const variant = product?.variants.find(
-    (v) => v.id === effectiveVariantId,
-  );
+  const variant = product?.variants.find((v) => v.id === effectiveVariantId);
 
   const galleryImages = useMemo(() => {
     if (!product) return [];
@@ -71,7 +69,12 @@ export default function ProductDetailPage() {
   const reviewSummary = useQuery({
     queryKey: ["reviews", "all", product?.id ?? 0],
     queryFn: () =>
-      reviewsApi.list(product!.id, { page: 1, size: 500, sortBy: "createdAt", sortDir: "desc" }),
+      reviewsApi.list(product!.id, {
+        page: 1,
+        size: 500,
+        sortBy: "createdAt",
+        sortDir: "desc",
+      }),
     enabled: product != null,
     staleTime: 60 * 1000,
   });
@@ -170,8 +173,9 @@ export default function ProductDetailPage() {
     );
   }
 
-  const onSale = variant?.salePrice != null && variant.salePrice < variant.price;
-  const displayPrice = onSale ? variant!.salePrice! : variant?.price ?? 0;
+  const onSale =
+    variant?.salePrice != null && variant.salePrice < variant.price;
+  const displayPrice = onSale ? variant!.salePrice! : (variant?.price ?? 0);
 
   return (
     <div className="container-app py-8">
@@ -286,6 +290,15 @@ export default function ProductDetailPage() {
             >
               Thêm vào giỏ
             </Button>
+            <Button
+              size="lg"
+              variant="secondary"
+              onClick={handleBuyNow}
+              disabled={!variant}
+              className="flex-1"
+            >
+              Mua ngay
+            </Button>
             <button
               type="button"
               onClick={handleToggleWishlist}
@@ -300,15 +313,6 @@ export default function ProductDetailPage() {
             >
               <Heart size={18} fill={isWished ? "currentColor" : "none"} />
             </button>
-            <Button
-              size="lg"
-              variant="secondary"
-              onClick={handleBuyNow}
-              disabled={!variant}
-              className="flex-1"
-            >
-              Mua ngay
-            </Button>
           </div>
 
           <div className="mt-7 grid grid-cols-3 gap-3 rounded-xl border border-stone-200 bg-stone-50 p-4 text-center text-xs text-stone-600">
@@ -343,35 +347,35 @@ export default function ProductDetailPage() {
 
         <div className="py-7">
           {tab === "specs" && (
-            <div className="grid max-w-3xl gap-6 md:grid-cols-2">
+            <div className="space-y-10">
               {product.description && (
-                <div className="md:col-span-2">
-                  <h3 className="font-display mb-2 text-sm font-bold tracking-wider text-stone-900 uppercase">
-                    Mô tả
-                  </h3>
-                  <HtmlContent
-                    html={product.description}
-                    className="text-stone-700"
-                  />
-                </div>
+                <HtmlContent
+                  html={product.description}
+                  className="text-stone-700"
+                />
               )}
               {product.specifications.length > 0 && (
-                <dl className="md:col-span-2">
-                  <h3 className="font-display mb-3 text-sm font-bold tracking-wider text-stone-900 uppercase">
-                    Thông số
+                <section className="mx-auto max-w-3xl">
+                  <h3 className="font-display mb-4 text-center text-sm font-bold tracking-wider text-stone-900 uppercase">
+                    Thông số kỹ thuật
                   </h3>
-                  <div className="divide-y divide-stone-200 rounded-xl border border-stone-200">
-                    {product.specifications.map((s) => (
+                  <dl className="overflow-hidden rounded-xl border border-stone-200 bg-white">
+                    {product.specifications.map((s, idx) => (
                       <div
                         key={s.id}
-                        className="grid grid-cols-[1fr_2fr] px-4 py-3 text-sm"
+                        className={cn(
+                          "grid grid-cols-[minmax(140px,1fr)_2fr] divide-x divide-stone-200 text-sm",
+                          idx > 0 && "border-t border-stone-200",
+                        )}
                       >
-                        <dt className="text-stone-500">{s.name}</dt>
-                        <dd className="text-stone-900">{s.value}</dd>
+                        <dt className="bg-stone-50 px-5 py-3 font-medium text-stone-600">
+                          {s.name}
+                        </dt>
+                        <dd className="px-5 py-3 text-stone-900">{s.value}</dd>
                       </div>
                     ))}
-                  </div>
-                </dl>
+                  </dl>
+                </section>
               )}
             </div>
           )}
@@ -422,10 +426,7 @@ export default function ProductDetailPage() {
         </section>
       )}
 
-      <RecentlyViewedSection
-        excludeProductId={product.id}
-        className="mt-16"
-      />
+      <RecentlyViewedSection excludeProductId={product.id} className="mt-16" />
     </div>
   );
 }

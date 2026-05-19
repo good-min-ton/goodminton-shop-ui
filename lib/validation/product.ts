@@ -6,6 +6,8 @@ export const productSpecSchema = z.object({
 });
 
 export const productVariantSchema = z.object({
+  /** Existing variant id — present = UPDATE in place; absent = CREATE new. */
+  id: z.number().int().positive().optional(),
   colorId: z.number().int().positive("Chọn màu"),
   sizeId: z.number().int().positive("Chọn cỡ"),
   skuCode: z.string().min(2, "SKU tối thiểu 2 ký tự").max(60),
@@ -20,7 +22,8 @@ export const productSchema = z.object({
     .min(2)
     .max(120)
     .regex(/^[a-z0-9-]+$/, "Slug chỉ chứa chữ thường, số và dấu gạch ngang"),
-  description: z.string().max(5000).optional(),
+  // HTML rich-text: images/videos embed as URL strings + markup overhead → 100k.
+  description: z.string().max(100000).optional(),
   categoryId: z.number().int().positive("Chọn danh mục"),
   brandId: z.number().int().positive("Chọn thương hiệu"),
   relatedProductId: z.number().int().nullable().optional(),

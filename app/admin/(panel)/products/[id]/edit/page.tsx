@@ -77,6 +77,10 @@ export default function EditProductPage() {
             value: s.value,
           })),
           variants: p.variants.map((v) => ({
+            // Carry the existing id so PUT does an in-place UPDATE instead of
+            // CREATE (avoids unique-constraint conflicts on SKU + preserves
+            // inventory/order references).
+            id: v.id,
             colorId: v.color.id,
             sizeId: v.size.id,
             skuCode: v.skuCode,

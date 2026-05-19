@@ -2,7 +2,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { productsApi } from "@/lib/api/products";
-import { reviewsApi } from "@/lib/api/reviews";
 import type { PageQuery, Product } from "@/types/api";
 
 interface UseProductListOptions {
@@ -35,14 +34,6 @@ export function useProductRecommendations(productId: number | null) {
     queryFn: () => productsApi.recommendations(productId as number),
     enabled: productId != null,
     staleTime: 10 * 60 * 1000,
-  });
-}
-
-export function useProductReviews(productId: number | null, page = 1, size = 10) {
-  return useQuery({
-    queryKey: ["reviews", "list", productId, page, size],
-    queryFn: () => reviewsApi.list(productId as number, { page, size }),
-    enabled: productId != null,
   });
 }
 

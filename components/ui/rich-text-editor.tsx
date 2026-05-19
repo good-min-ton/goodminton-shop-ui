@@ -44,6 +44,9 @@ export function RichTextEditor({
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3] },
+        // Disable bundled Link to avoid duplicate registration — we configure
+        // it explicitly below for openOnClick + target=_blank.
+        link: false,
       }),
       Link.configure({
         openOnClick: false,
@@ -58,7 +61,7 @@ export function RichTextEditor({
     content: value || "",
     editorProps: {
       attributes: {
-        class: "tiptap rich-text",
+        class: cn("tiptap rich-text", admin && "rich-text--dark"),
         "data-placeholder": placeholder,
       },
     },
