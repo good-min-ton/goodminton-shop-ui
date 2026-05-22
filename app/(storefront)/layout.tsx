@@ -2,6 +2,7 @@ import { StorefrontHeader } from "@/components/storefront/header";
 import { StorefrontFooter } from "@/components/storefront/footer";
 import { CartSidebar } from "@/components/storefront/cart-sidebar";
 import { StorefrontAuthGuard } from "@/components/auth/storefront-guard";
+import { ChatBot } from "@/components/chatbot";
 
 export default function StorefrontLayout({
   children,
@@ -13,6 +14,7 @@ export default function StorefrontLayout({
       <main className="flex flex-1 flex-col">{children}</main>
       <StorefrontFooter />
       <CartSidebar />
+      <ChatBot />
     </div>
   );
 }
