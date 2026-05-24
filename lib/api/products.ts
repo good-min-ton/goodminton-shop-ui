@@ -48,16 +48,14 @@ export const productsApi = {
     return api.delete<void>(`/api/products/${productId}`);
   },
 
-  uploadVariantImage(variantId: number, file: File) {
+  /** Append an image to a product's gallery (backend assigns next sortOrder). */
+  uploadImage(productId: number, file: File) {
     const fd = new FormData();
     fd.append("file", file);
-    return api.upload<ResourceImage>(
-      `/api/products/variants/${variantId}/images`,
-      fd,
-    );
+    return api.upload<ResourceImage>(`/api/products/${productId}/images`, fd);
   },
 
-  removeVariantImage(imageId: number) {
-    return api.delete<void>(`/api/products/variants/images/${imageId}`);
+  removeImage(imageId: number) {
+    return api.delete<void>(`/api/products/images/${imageId}`);
   },
 };

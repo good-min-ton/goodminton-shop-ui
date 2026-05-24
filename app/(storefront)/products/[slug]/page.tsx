@@ -54,17 +54,12 @@ export default function ProductDetailPage() {
     selectedVariantId ?? product?.variants[0]?.id ?? null;
   const variant = product?.variants.find((v) => v.id === effectiveVariantId);
 
+  // Product-level gallery: `images` is already ordered, with the thumbnail as
+  // the first item — variants share the same image set.
   const galleryImages = useMemo(() => {
     if (!product) return [];
-    const list: { id: number; url: string }[] = [];
-    if (product.thumbnail) {
-      list.push({ id: product.thumbnail.id, url: product.thumbnail.url });
-    }
-    if (variant?.images?.length) {
-      for (const img of variant.images) list.push({ id: img.id, url: img.url });
-    }
-    return list;
-  }, [product, variant]);
+    return product.images.map((img) => ({ id: img.id, url: img.url }));
+  }, [product]);
 
   const reviewSummary = useQuery({
     queryKey: ["reviews", "all", product?.id ?? 0],

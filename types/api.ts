@@ -131,7 +131,6 @@ export interface ProductVariant {
   skuCode: string;
   price: number;
   salePrice: number | null;
-  images: ResourceImage[];
 }
 
 export interface Product {
@@ -144,6 +143,11 @@ export interface Product {
   slug: string;
   isVisible: boolean;
   thumbnail: ResourceImage | null;
+  /**
+   * Product gallery — single image set shared by all variants. Ordered by
+   * `sortOrder`; first item (sortOrder=0) is the thumbnail.
+   */
+  images: ResourceImage[];
   createdAt: string;
   specifications: ProductSpecification[];
   variants: ProductVariant[];

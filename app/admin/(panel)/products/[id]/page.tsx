@@ -65,6 +65,12 @@ export default function AdminProductDetailPage() {
         ]}
         actions={
           <>
+            <Link href={`/admin/products/${p.id}/images`}>
+              <Button variant="admin-ghost">
+                <ImageIcon size={16} />
+                Quản lý ảnh ({p.images.length})
+              </Button>
+            </Link>
             <Link href={`/admin/products/${p.id}/edit`}>
               <Button variant="admin-ghost">
                 <Pencil size={16} />
@@ -160,32 +166,24 @@ export default function AdminProductDetailPage() {
                   <div className="min-w-0">
                     <p className="font-mono text-admin-text">{v.skuCode}</p>
                     <p className="text-admin-text-muted text-xs">
-                      {v.color.name} · {v.size.name} · {v.images.length} ảnh
+                      {v.color.name} · {v.size.name}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right text-xs">
-                      {v.salePrice != null && v.salePrice < v.price ? (
-                        <>
-                          <p className="font-mono text-admin-text">
-                            {formatVnd(v.salePrice)}
-                          </p>
-                          <p className="font-mono text-admin-text-muted line-through">
-                            {formatVnd(v.price)}
-                          </p>
-                        </>
-                      ) : (
+                  <div className="text-right text-xs">
+                    {v.salePrice != null && v.salePrice < v.price ? (
+                      <>
                         <p className="font-mono text-admin-text">
+                          {formatVnd(v.salePrice)}
+                        </p>
+                        <p className="font-mono text-admin-text-muted line-through">
                           {formatVnd(v.price)}
                         </p>
-                      )}
-                    </div>
-                    <Link
-                      href={`/admin/products/${p.id}/variants/${v.id}/images`}
-                      className="text-primary-300 text-xs hover:underline"
-                    >
-                      Quản lý ảnh
-                    </Link>
+                      </>
+                    ) : (
+                      <p className="font-mono text-admin-text">
+                        {formatVnd(v.price)}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}

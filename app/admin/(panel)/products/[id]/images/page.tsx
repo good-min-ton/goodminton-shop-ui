@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, Upload, ImageIcon } from "lucide-react";
+import { Trash2, Upload, ImageIcon, Star } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/page-header";
 import { AdminCard } from "@/components/admin/admin-card";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
@@ -15,27 +15,26 @@ import { productsApi } from "@/lib/api/products";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
 
-export default function VariantImagesPage() {
-  const params = useParams<{ id: string; variantId: string }>();
-  const productId = params?.id ? Number(params.id) : null;
-  const variantId = params?.variantId ? Number(params.variantId) : null;
+export default function ProductImagesPage() {
+  const params = useParams<{ id: string }>();
+  const productId = params?.id ? Number(params.id) : 0;
   const qc = useQueryClient();
   const [pickedFile, setPickedFile] = useState<File | null>(null);
   const [pickedPreview, setPickedPreview] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const product = useProduct(productId);
-  const variant = product.data?.variants.find((v) => v.id === variantId);
+  const product = useProduct(productId > 0 ? productId : null);
 
   const upload = useMutation({
     mutationFn: () => {
       if (!pickedFile) throw new Error("No file selected");
-      return productsApi.uploadVariantImage(variantId as number, pickedFile);
+      return productsApi.uploadImage(productId, pickedFile);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["products", "detail", productId] });
       toast("Đã upload ảnh", "success");
       setPickedFile(null);
+      if (pickedPreview) URL.revokeObjectURL(pickedPreview);
       setPickedPreview(null);
     },
     onError: (err) => {
@@ -44,7 +43,7 @@ export default function VariantImagesPage() {
   });
 
   const remove = useMutation({
-    mutationFn: (imageId: number) => productsApi.removeVariantImage(imageId),
+    mutationFn: (imageId: number) => productsApi.removeImage(imageId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["products", "detail", productId] });
       toast("Đã xoá ảnh", "success");
@@ -58,6 +57,7 @@ export default function VariantImagesPage() {
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (pickedPreview) URL.revokeObjectURL(pickedPreview);
     setPickedFile(file);
     setPickedPreview(URL.createObjectURL(file));
   }
@@ -70,21 +70,23 @@ export default function VariantImagesPage() {
     );
   }
 
-  if (!product.data || !variant) {
-    return <EmptyState title="Không tìm thấy variant" />;
+  if (!product.data) {
+    return <EmptyState title="Không tìm thấy sản phẩm" />;
   }
 
   const p = product.data;
+  // Backend orders by sortOrder; first item is the thumbnail (sortOrder=0).
+  const [thumbnail, ...extras] = p.images;
 
   return (
     <>
       <AdminPageHeader
-        title={`Ảnh variant: ${variant.skuCode}`}
-        description={`${p.name} · ${variant.color.name} · ${variant.size.name}`}
+        title="Quản lý ảnh sản phẩm"
+        description={`Bộ ảnh dùng chung cho tất cả phiên bản của ${p.name}.`}
         breadcrumbs={[
           { label: "Sản phẩm", href: "/admin/products" },
           { label: p.name, href: `/admin/products/${p.id}` },
-          { label: "Ảnh variant" },
+          { label: "Ảnh" },
         ]}
       />
 
@@ -99,7 +101,7 @@ export default function VariantImagesPage() {
               <img
                 src={pickedPreview}
                 alt="Preview"
-                className="h-full w-full object-contain"
+                className="h-full w-full object-cover"
               />
             </div>
           )}
@@ -111,7 +113,8 @@ export default function VariantImagesPage() {
               className="text-admin-text-muted file:bg-admin-surface-2 file:border-admin-border file:text-admin-text block w-full text-sm file:mr-3 file:rounded-md file:border file:px-3 file:py-1.5 file:text-sm"
             />
             <p className="text-admin-text-muted mt-2 text-xs">
-              PNG/JPG, ≤ 5MB. Upload thêm để khách hàng xem nhiều góc sản phẩm.
+              PNG/JPG/WebP, ≤ 5MB. Ảnh sẽ được append vào cuối gallery. Để đổi
+              ảnh chính (thumbnail), dùng form Sửa sản phẩm với field thumbnail.
             </p>
           </div>
           <Button
@@ -127,16 +130,37 @@ export default function VariantImagesPage() {
 
       <AdminCard padded={false}>
         <h2 className="font-display text-admin-text-muted border-admin-border border-b px-5 py-3 text-[11px] font-bold tracking-widest uppercase">
-          Đã có ({variant.images.length} ảnh)
+          Gallery ({p.images.length} ảnh)
         </h2>
-        {variant.images.length === 0 ? (
+        {p.images.length === 0 ? (
           <div className="text-admin-text-muted flex flex-col items-center gap-2 py-12 text-sm">
             <ImageIcon size={32} className="opacity-40" />
             <span>Chưa có ảnh nào.</span>
           </div>
         ) : (
           <ul className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 md:grid-cols-4">
-            {variant.images.map((img) => (
+            {thumbnail && (
+              <li
+                key={thumbnail.id}
+                className="bg-admin-surface-2 group relative aspect-square overflow-hidden rounded-lg ring-2 ring-amber-400"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={thumbnail.url}
+                  alt="Thumbnail"
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+                <span
+                  title="Ảnh chính — đổi qua form Sửa sản phẩm"
+                  className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-md bg-amber-400/95 px-1.5 py-0.5 text-[10px] font-semibold text-stone-900"
+                >
+                  <Star size={10} className="fill-stone-900" />
+                  Thumbnail
+                </span>
+              </li>
+            )}
+            {extras.map((img) => (
               <li
                 key={img.id}
                 className="bg-admin-surface-2 group relative aspect-square overflow-hidden rounded-lg"
@@ -144,8 +168,8 @@ export default function VariantImagesPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={img.url}
-                  alt={`Variant image ${img.id}`}
-                  className="h-full w-full object-contain p-2"
+                  alt={`Product image ${img.id}`}
+                  className="h-full w-full object-cover"
                   loading="lazy"
                 />
                 <button
