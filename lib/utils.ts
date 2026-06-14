@@ -63,3 +63,26 @@ export function slugify(input: string): string {
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
+
+/**
+ * Inject a Cloudinary transformation segment into an `/image/upload/` URL.
+ * Returns the original URL untouched if it isn't a Cloudinary upload URL —
+ * safe to use as a blanket helper across all thumbnail render paths.
+ *
+ * @example
+ *   cldThumb(url, 96)            // 96x96 square, auto format + quality
+ *   cldThumb(url, 96, { fit: "contain" }) // contain instead of fill
+ */
+export function cldThumb(
+  url: string | null | undefined,
+  size: number,
+  opts: { fit?: "fill" | "contain" } = {},
+): string | null {
+  if (!url) return null;
+  const marker = "/image/upload/";
+  const idx = url.indexOf(marker);
+  if (idx === -1) return url;
+  const crop = opts.fit === "contain" ? "c_fit" : "c_fill";
+  const transform = `${crop},w_${size},h_${size},q_auto,f_auto`;
+  return `${url.slice(0, idx + marker.length)}${transform}/${url.slice(idx + marker.length)}`;
+}

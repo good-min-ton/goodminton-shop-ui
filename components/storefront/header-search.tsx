@@ -8,7 +8,7 @@ import { Search, X } from "lucide-react";
 import { searchApi } from "@/lib/api/search";
 import { useDebouncedValue } from "@/hooks/use-debounce";
 import { Spinner } from "@/components/ui/spinner";
-import { cn, formatVnd } from "@/lib/utils";
+import { cldThumb, cn, formatVnd } from "@/lib/utils";
 import type { ProductListItem } from "@/types/api";
 
 export function HeaderSearch() {
@@ -170,12 +170,19 @@ function SearchResults({
             >
               <div className="bg-stone-100 flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-md">
                 {p.thumbnailUrl && (
+                  // Small Cloudinary-optimized thumb (~5KB vs ~200KB raw).
+                  // Eager because popover is in viewport the moment it opens —
+                  // lazy would force the user to wait for the intersection
+                  // observer to fire even though they're already looking at it.
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={p.thumbnailUrl}
+                    src={cldThumb(p.thumbnailUrl, 96, { fit: "contain" }) ?? ""}
                     alt={p.name}
+                    width={48}
+                    height={48}
                     className="h-full w-full object-contain"
-                    loading="lazy"
+                    loading="eager"
+                    decoding="async"
                   />
                 )}
               </div>
