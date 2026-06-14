@@ -23,55 +23,53 @@ Next.js storefront + admin console for a Vietnamese badminton ecommerce platform
 
 7-slide auto-advancing hero (pause on hover, touch-swipe, dot pagination, `priority` for LCP). Category tiles render Cloudinary thumbnails with a gradient overlay so the title stays legible on any image.
 
-![Homepage hero](docs/screenshots/homepage.png)
+![Homepage hero](.github/screenshots/homepage.png)
 
 ### Product detail — gallery, variants, reviews
 
 Image gallery driven by product thumbnail + selected variant images, color/size chip selector, inline review composer that auto-detects eligible `orderItem` (completed order, not yet reviewed), and a rating summary with distribution histogram.
 
-![Product detail](docs/screenshots/product-detail.png)
+![Product detail](.github/screenshots/product-detail.png)
 
 ### Backend-powered search + autocomplete
 
 Header search hits `/api/search/products/suggest` (Postgres FTS + trigram fuzzy + `unaccent`). The `/products` page swaps to `/api/search/products` whenever a query is present — no client-side filtering of large lists. Admin pages (products, accounts, stores, categories, brands) share the same pattern via a reusable search bar.
 
-![Search](docs/screenshots/search.png)
+![Search](.github/screenshots/search.png)
 
 ### Order tracking — clear progress states
 
 6-step timeline with active-state pulse, completed-state filled icons, gradient connectors. Mobile collapses to a vertical stack to keep all steps legible on small screens.
 
-![Order timeline](docs/screenshots/order-timeline.png)
-
 ### Admin product editor — TipTap rich text
 
 Full WYSIWYG for product descriptions with image (URL) + YouTube/Vimeo embed. Output HTML is sanitized via DOMPurify (iframes restricted to YouTube/Vimeo hosts by a custom DOMPurify hook). The storefront renders descriptions via the exact same `.rich-text` CSS, so admin preview matches public output 1:1.
 
-![Rich text editor](docs/screenshots/rich-text-editor.png)
+![Rich text editor](.github/screenshots/rich-text-editor.png)
 
 ### Inventory management per store
 
 Store admins manage their own inventory (CRUD with backend ownership check). Super admins manage any store. Variant picker filters out variants already stocked at the store to prevent duplicate inventory rows.
 
-![Inventory modal](docs/screenshots/inventory.png)
+![Inventory modal](.github/screenshots/inventory.png)
 
 ### Admin dashboard
 
 Recharts-driven analytics: revenue-by-date area chart, revenue-by-store bar chart, key KPIs (total revenue, completed orders, online vs in-store split), low-stock alerts.
 
-![Admin dashboard](docs/screenshots/admin-dashboard.png)
+![Admin dashboard](.github/screenshots/admin-dashboard.png)
 
 ### Store locator with Leaflet
 
 Map view of all physical stores, click-to-focus markers, scroll-to-card sync, "Open in Google Maps" link per store. "HQ" badge for the central store.
 
-![Store locator](docs/screenshots/stores-map.png)
+![Store locator](.github/screenshots/stores-map.png)
 
 ### RAG chatbot
 
 Floating widget on every storefront page. Calls the FastAPI RAG service for grounded shopping advice — product recommendations, real-time price + inventory lookups (tool-calling into the shop API), warranty & return policies. Persists chat history to `localStorage`, sends a rolling 20-message context, custom 60s timeout with friendly error messages.
 
-![Chatbot](docs/screenshots/chatbot.png)
+![Chatbot](.github/screenshots/chatbot.png)
 
 ## Architecture
 
@@ -137,14 +135,14 @@ The chatbot integration spec lives in [`docs/guide_chatbot.md`](docs/guide_chatb
 - **PK = `id`, FK = `xxxId`** in DTOs across the wire. FE types in [`types/api.ts`](types/api.ts) mirror this exactly.
 - **Page state is 1-based** on the FE; the FE converts to 0-based for backend endpoints that expect 0-based (e.g. search service).
 - **Auth flow**: customers log in at `/login` (rejects admin accounts), admins log in at `/admin/login` (rejects customer accounts). Storefront layout auto-logs-out admin sessions on entry.
-- **Comments in English**, kept minimal — explain *why*, not *what*.
+- **Comments in English**, kept minimal — explain _why_, not _what_.
 - **Readonly props**: React component props are wrapped in `Readonly<...>` (SonarLint S6759).
 
 ## Scripts
 
 ```bash
-bun dev        # dev server with Turbopack
-bun build      # production build
-bun start      # serve production build
+bun dev              # dev server with Turbopack
+bun build            # production build
+bun start            # serve production build
 bunx tsc --noEmit    # type-check
 ```
