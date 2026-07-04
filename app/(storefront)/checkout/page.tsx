@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { ShoppingBag, Banknote, Building2, CreditCard } from "lucide-react";
+import { ShoppingBag, Banknote, CreditCard } from "lucide-react";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { Input, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -43,12 +43,6 @@ const PAYMENT_OPTIONS: {
     label: "Thanh toán khi nhận hàng (COD)",
     description: "Trả tiền mặt cho shipper khi nhận hàng.",
     icon: Banknote,
-  },
-  {
-    value: "BANKING",
-    label: "Chuyển khoản ngân hàng",
-    description: "Chuyển khoản theo thông tin shop gửi sau khi đặt.",
-    icon: Building2,
   },
   {
     value: "VNPAY",

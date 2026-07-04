@@ -5,7 +5,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import {
   Banknote,
-  Building2,
   Minus,
   Plus,
   Search,
@@ -46,7 +45,6 @@ const PAYMENT_METHODS: {
   icon: typeof Banknote;
 }[] = [
   { value: "COD", label: "Tiền mặt", icon: Banknote },
-  { value: "BANKING", label: "Chuyển khoản", icon: Building2 },
 ];
 
 export default function PosPage() {

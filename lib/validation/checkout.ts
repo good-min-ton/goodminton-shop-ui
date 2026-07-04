@@ -18,6 +18,6 @@ export const checkoutSchema = z.object({
     .union([z.literal(""), z.string().email("Email không hợp lệ")])
     .optional(),
   note: z.string().max(500).optional(),
-  paymentMethod: z.enum(["COD", "BANKING", "VNPAY"]),
+  paymentMethod: z.enum(["COD", "VNPAY"]),
 });
 export type CheckoutInput = z.infer<typeof checkoutSchema>;

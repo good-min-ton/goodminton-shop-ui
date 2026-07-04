@@ -226,7 +226,7 @@ export type OrderStatus =
 
 export type OrderType = "ONLINE" | "IN_STORE";
 
-export type PaymentMethod = "COD" | "BANKING" | "VNPAY";
+export type PaymentMethod = "COD" | "VNPAY";
 export type PaymentStatus = "PENDING" | "PAID" | "FAILED";
 
 export interface OrderItem {

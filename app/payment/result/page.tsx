@@ -12,11 +12,32 @@ import type { Order } from "@/types/api";
 const POLL_INTERVAL_MS = 2000;
 const MAX_ATTEMPTS = 10;
 
+/**
+ * VNPay response-code map. `00` = success; every other code is a specific
+ * failure reason we surface to the user. Codes we don't know fall back to
+ * a generic message.
+ */
+const VNPAY_MESSAGES: Record<string, string> = {
+  "00": "Giao dịch thành công.",
+  "07": "Trừ tiền thành công. Giao dịch bị nghi ngờ gian lận — vui lòng liên hệ ngân hàng.",
+  "09": "Thẻ chưa đăng ký dịch vụ InternetBanking.",
+  "10": "Xác thực thông tin sai quá 3 lần.",
+  "11": "Đã hết hạn chờ thanh toán.",
+  "12": "Thẻ / tài khoản đã bị khoá.",
+  "13": "Nhập sai mật khẩu OTP.",
+  "24": "Bạn đã huỷ giao dịch.",
+  "51": "Tài khoản không đủ số dư.",
+  "65": "Tài khoản vượt hạn mức giao dịch trong ngày.",
+  "75": "Ngân hàng thanh toán đang bảo trì.",
+  "79": "Nhập sai mật khẩu thanh toán quá số lần quy định.",
+  "99": "Có lỗi xảy ra trong quá trình thanh toán.",
+};
+
 type State =
   | { kind: "polling"; attempt: number }
   | { kind: "success"; order: Order }
   | { kind: "pending-after-poll"; order: Order }
-  | { kind: "failed"; reason: string };
+  | { kind: "failed"; reason: string; orderId?: number };
 
 export default function PaymentResultPage() {
   return (
@@ -38,22 +59,33 @@ export default function PaymentResultPage() {
 
 function PaymentResultContent() {
   const sp = useSearchParams();
-  const success = sp.get("success") === "true";
-  const validSignature = sp.get("validSignature") === "true";
-  const orderId = sp.get("orderId");
-  const responseCode = sp.get("responseCode");
+  // VNPay redirects to us with vnp_* params. Backend has already verified the
+  // signature via the IPN channel — we only need to read the response code +
+  // txnRef to know what to show.
+  const responseCode = sp.get("vnp_ResponseCode");
+  const txStatus = sp.get("vnp_TransactionStatus");
+  const txnRef = sp.get("vnp_TxnRef");
+
+  const parsedOrderId = txnRef ? Number(txnRef.split("-")[0]) : Number.NaN;
+  const orderId = Number.isFinite(parsedOrderId) ? parsedOrderId : null;
 
   const [state, setState] = useState<State>(() => {
-    if (!success || !validSignature) {
+    if (!responseCode) {
       return {
         kind: "failed",
-        reason: responseCode
-          ? `VNPay từ chối thanh toán (mã ${responseCode}).`
-          : "Chữ ký VNPay không hợp lệ.",
+        reason:
+          "Không có thông tin từ VNPay. Vui lòng vào 'Đơn hàng của tôi' để kiểm tra.",
+      };
+    }
+    if (responseCode !== "00" || txStatus !== "00") {
+      return {
+        kind: "failed",
+        reason: VNPAY_MESSAGES[responseCode] ?? "Giao dịch không thành công.",
+        orderId: orderId ?? undefined,
       };
     }
     if (!orderId) {
-      return { kind: "failed", reason: "Thiếu thông tin đơn hàng." };
+      return { kind: "failed", reason: "Không đọc được mã đơn hàng." };
     }
     return { kind: "polling", attempt: 0 };
   });
@@ -64,7 +96,7 @@ function PaymentResultContent() {
 
     const tick = async () => {
       try {
-        const order = await ordersApi.myOrderDetail(Number(orderId));
+        const order = await ordersApi.myOrderDetail(orderId);
         if (cancelled) return;
         const paid = order.payments.some((p) => p.status === "PAID");
         if (paid) {
@@ -82,6 +114,7 @@ function PaymentResultContent() {
           setState({
             kind: "failed",
             reason: "Không kiểm tra được trạng thái đơn hàng.",
+            orderId: orderId ?? undefined,
           });
           return;
         }
@@ -101,7 +134,7 @@ function PaymentResultContent() {
       <ResultCard
         icon={<Spinner className="text-primary-700" size={48} />}
         title="Đang xác nhận thanh toán..."
-        description={`Vui lòng chờ trong giây lát. Lần kiểm tra ${state.attempt + 1}/${MAX_ATTEMPTS}.`}
+        description={`VNPay đã ghi nhận. Đang chờ hệ thống cập nhật đơn hàng (${state.attempt + 1}/${MAX_ATTEMPTS}).`}
       />
     );
   }
@@ -111,7 +144,7 @@ function PaymentResultContent() {
       <ResultCard
         icon={<CheckCircle2 size={56} className="text-emerald-600" />}
         title="Thanh toán thành công"
-        description={`Đơn hàng #${state.order.id} đã được ghi nhận và sẽ sớm được xử lý.`}
+        description={`Đơn hàng #${state.order.id} đã được thanh toán và sẽ sớm được xử lý.`}
         actions={
           <>
             <Link href={`/orders/${state.order.id}`}>
@@ -131,7 +164,7 @@ function PaymentResultContent() {
       <ResultCard
         icon={<Clock size={56} className="text-amber-600" />}
         title="Đang xử lý"
-        description="Hệ thống chưa nhận được xác nhận thanh toán. Đơn hàng đã tạo, bạn có thể kiểm tra lại sau ít phút."
+        description="Ngân hàng đã trừ tiền nhưng hệ thống chưa nhận được xác nhận từ VNPay. Đơn hàng sẽ tự cập nhật trong ít phút — bạn có thể refresh trang đơn hàng để kiểm tra lại."
         actions={
           <Link href={`/orders/${state.order.id}`}>
             <Button uppercase>Xem đơn hàng</Button>
@@ -148,9 +181,15 @@ function PaymentResultContent() {
       description={state.reason}
       actions={
         <>
-          <Link href="/orders">
-            <Button uppercase>Xem đơn hàng của tôi</Button>
-          </Link>
+          {state.orderId == null ? (
+            <Link href="/orders">
+              <Button uppercase>Đơn hàng của tôi</Button>
+            </Link>
+          ) : (
+            <Link href={`/orders/${state.orderId}`}>
+              <Button uppercase>Xem đơn hàng</Button>
+            </Link>
+          )}
           <Link href="/products">
             <Button variant="secondary">Tiếp tục mua sắm</Button>
           </Link>
