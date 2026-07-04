@@ -53,7 +53,9 @@ export default function PosPage() {
 
   const [search, setSearch] = useState("");
   const [lines, setLines] = useState<PosLine[]>([]);
-  const [customerId, setCustomerId] = useState<string>("");
+  // Walk-in customer info — both optional. Empty = anonymous "Khách lẻ".
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("COD");
 
   const inv = useQuery({
@@ -161,15 +163,14 @@ export default function PosPage() {
 
   const create = useMutation({
     mutationFn: () => {
-      const customerIdNum = Number(customerId);
-      if (!Number.isFinite(customerIdNum) || customerIdNum <= 0) {
-        throw new Error("Vui lòng nhập Customer ID hợp lệ");
-      }
       if (lines.length === 0) {
         throw new Error("Vui lòng thêm sản phẩm");
       }
+      const name = customerName.trim();
+      const phone = customerPhone.trim();
       return ordersApi.createInStore({
-        customerId: customerIdNum,
+        customerName: name || undefined,
+        customerPhone: phone || undefined,
         items: lines.map((l) => ({
           variantId: l.variantId,
           quantity: l.quantity,
@@ -182,7 +183,8 @@ export default function PosPage() {
       qc.invalidateQueries({ queryKey: ["my-store-inventory"] });
       toast(`Đã tạo đơn #${order.id}`, "success");
       setLines([]);
-      setCustomerId("");
+      setCustomerName("");
+      setCustomerPhone("");
       router.push(`/store-admin/orders/${order.id}`);
     },
     onError: (err) => {
@@ -234,16 +236,28 @@ export default function PosPage() {
               <User size={12} className="mr-1.5 inline" />
               Khách hàng
             </h2>
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="Customer ID"
-              value={customerId}
-              onChange={(e) => setCustomerId(e.target.value.replace(/\D/g, ""))}
-              className="bg-admin-surface-2 text-admin-text border-admin-border placeholder:text-admin-text-muted focus:border-amber-400 w-full rounded-lg border px-3 py-2 text-sm outline-none"
-            />
+            <div className="space-y-2">
+              <input
+                type="text"
+                placeholder="Tên khách (không bắt buộc)"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                maxLength={100}
+                className="bg-admin-surface-2 text-admin-text border-admin-border placeholder:text-admin-text-muted focus:border-amber-400 w-full rounded-lg border px-3 py-2 text-sm outline-none"
+              />
+              <input
+                type="tel"
+                inputMode="tel"
+                placeholder="SĐT (không bắt buộc)"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                maxLength={20}
+                className="bg-admin-surface-2 text-admin-text border-admin-border placeholder:text-admin-text-muted focus:border-amber-400 w-full rounded-lg border px-3 py-2 text-sm outline-none"
+              />
+            </div>
             <p className="text-admin-text-muted mt-1.5 text-[11px]">
-              Nhập ID account của khách (backend chưa hỗ trợ search theo SĐT/email).
+              Bỏ trống nếu là khách lẻ. Có SĐT thì sau này tra cứu bảo hành dễ
+              hơn.
             </p>
           </AdminCard>
 

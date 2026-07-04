@@ -284,7 +284,10 @@ export interface CreateOrderRequest {
 }
 
 export interface CreateInStoreOrderRequest {
-  customerId: number;
+  /** Walk-in customer name — optional. Backend stores as `recipient_name`. */
+  customerName?: string;
+  /** Walk-in customer phone — optional. Backend stores as `recipient_phone`. */
+  customerPhone?: string;
   items: { variantId: number; quantity: number }[];
   paymentMethod: PaymentMethod;
 }
