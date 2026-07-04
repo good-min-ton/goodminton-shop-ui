@@ -34,6 +34,14 @@ export default function StoreAdminOrderDetailPage() {
     queryKey: ["store-order", "detail", id],
     queryFn: () => ordersApi.detail(id as number),
     enabled: id != null,
+    // Auth/permission failures aren't recoverable via retry — bail out fast so
+    // the guard branch below can render the right message.
+    retry: (_failureCount, err) => {
+      if (err instanceof ApiException && (err.code === 2301 || err.code === 2305)) {
+        return false;
+      }
+      return _failureCount < 2;
+    },
   });
 
   function invalidate() {
@@ -87,6 +95,27 @@ export default function StoreAdminOrderDetailPage() {
       <div className="flex justify-center py-16">
         <Spinner className="text-amber-300" size={32} />
       </div>
+    );
+  }
+
+  if (order.error) {
+    const err = order.error;
+    if (err instanceof ApiException && err.code === 2305) {
+      return (
+        <EmptyState
+          title="Không có quyền xem đơn hàng này"
+          description="Đơn hàng này thuộc chi nhánh khác. Bạn chỉ xem được đơn của chi nhánh mình quản lý."
+        />
+      );
+    }
+    if (err instanceof ApiException && err.code === 2301) {
+      return <EmptyState title="Không tìm thấy đơn hàng" />;
+    }
+    return (
+      <EmptyState
+        title="Không tải được đơn hàng"
+        description={getErrorMessage(err, "Vui lòng thử lại sau ít phút.")}
+      />
     );
   }
 
