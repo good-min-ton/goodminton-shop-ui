@@ -126,8 +126,10 @@ export interface ProductSpecification {
 
 export interface ProductVariant {
   id: number;
-  color: Color;
-  size: SizeOption;
+  /** Backend serializes with `@JsonInclude(NON_NULL)`; absent when product
+   *  has only one color (or no color axis at all). */
+  color: Color | null;
+  size: SizeOption | null;
   skuCode: string;
   price: number;
   salePrice: number | null;
@@ -204,8 +206,8 @@ export interface Inventory {
   skuCode: string;
   productId: number;
   productName: string;
-  color: Color;
-  size: SizeOption;
+  color: Color | null;
+  size: SizeOption | null;
   quantity: number;
   updatedAt: string;
 }
@@ -235,8 +237,8 @@ export interface OrderItem {
   productId: number;
   productName: string;
   skuCode: string;
-  color: Color;
-  size: SizeOption;
+  color: Color | null;
+  size: SizeOption | null;
   quantity: number;
   unitPrice: number;
   discountPrice: number | null;
@@ -337,7 +339,9 @@ export interface CartItem {
   productSlug: string;
   productName: string;
   thumbnailUrl: string | null;
+  /** Empty string when the variant has no color axis. */
   colorName: string;
+  /** Empty string when the variant has no size axis. */
   sizeName: string;
   skuCode: string;
   unitPrice: number;

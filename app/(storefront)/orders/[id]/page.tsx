@@ -19,7 +19,7 @@ import {
   useConfirmReceived,
   useMyOrder,
 } from "@/hooks/use-orders";
-import { formatVnd, formatDateTime } from "@/lib/utils";
+import { formatVnd, formatDateTime, variantLabel } from "@/lib/utils";
 
 export default function OrderDetailPage() {
   return (
@@ -119,7 +119,7 @@ function OrderDetailContent() {
                         {it.productName}
                       </p>
                       <p className="mt-0.5 text-sm text-stone-500">
-                        {it.color.name} · {it.size.name} · ×{it.quantity}
+                        {variantLabel(it.color, it.size)} · ×{it.quantity}
                       </p>
                       <p className="font-mono mt-0.5 text-xs text-stone-400">
                         SKU: {it.skuCode}

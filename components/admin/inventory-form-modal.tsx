@@ -10,6 +10,7 @@ import { inventoriesApi } from "@/lib/api/inventories";
 import { useProductList } from "@/hooks/use-products";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
+import { variantLabel } from "@/lib/utils";
 import type { Inventory, Product, ProductVariant } from "@/types/api";
 
 /** Parse <input type="number"> raw value, keeping "" empty so user can clear the field. */
@@ -144,7 +145,7 @@ export function InventoryFormModal({
           <div className="bg-admin-surface-2 border-admin-border rounded-lg border px-3 py-2.5 text-sm">
             <p className="text-admin-text font-medium">{editing.productName}</p>
             <p className="text-admin-text-muted mt-0.5 text-xs">
-              {editing.color.name} · {editing.size.name} · SKU{" "}
+              {variantLabel(editing.color, editing.size)} · SKU{" "}
               <span className="font-mono">{editing.skuCode}</span>
             </p>
           </div>
@@ -250,7 +251,7 @@ function AddBody({
         </option>
         {variantOptions.map((v) => (
           <option key={v.id} value={v.id}>
-            {v.color.name} · {v.size.name} · {v.skuCode}
+            {variantLabel(v.color, v.size)} · {v.skuCode}
           </option>
         ))}
       </Select>

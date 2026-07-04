@@ -81,8 +81,8 @@ export default function EditProductPage() {
             // CREATE (avoids unique-constraint conflicts on SKU + preserves
             // inventory/order references).
             id: v.id,
-            colorId: v.color.id,
-            sizeId: v.size.id,
+            colorId: v.color?.id,
+            sizeId: v.size?.id,
             skuCode: v.skuCode,
             price: v.price,
             salePrice: v.salePrice,

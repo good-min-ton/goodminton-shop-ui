@@ -10,7 +10,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { useMyOrders } from "@/hooks/use-orders";
-import { formatVnd, formatDateTime } from "@/lib/utils";
+import { formatVnd, formatDateTime, variantLabel } from "@/lib/utils";
 
 export default function OrdersPage() {
   return (
@@ -98,7 +98,7 @@ function OrdersContent() {
                         <span className="line-clamp-1 flex-1 text-stone-700">
                           {it.productName}{" "}
                           <span className="text-stone-400">
-                            · {it.color.name} · {it.size.name} ×{it.quantity}
+                            · {variantLabel(it.color, it.size)} ×{it.quantity}
                           </span>
                         </span>
                       </li>

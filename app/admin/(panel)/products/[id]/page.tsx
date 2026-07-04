@@ -15,7 +15,7 @@ import { useProduct } from "@/hooks/use-products";
 import { productsApi } from "@/lib/api/products";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
-import { formatVnd } from "@/lib/utils";
+import { formatVnd, variantLabel } from "@/lib/utils";
 
 export default function AdminProductDetailPage() {
   const params = useParams<{ id: string }>();
@@ -166,7 +166,7 @@ export default function AdminProductDetailPage() {
                   <div className="min-w-0">
                     <p className="font-mono text-admin-text">{v.skuCode}</p>
                     <p className="text-admin-text-muted text-xs">
-                      {v.color.name} · {v.size.name}
+                      {variantLabel(v.color, v.size)}
                     </p>
                   </div>
                   <div className="text-right text-xs">

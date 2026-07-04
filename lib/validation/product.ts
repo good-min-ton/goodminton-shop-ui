@@ -8,8 +8,13 @@ export const productSpecSchema = z.object({
 export const productVariantSchema = z.object({
   /** Existing variant id — present = UPDATE in place; absent = CREATE new. */
   id: z.number().int().positive().optional(),
-  colorId: z.number().int().positive("Chọn màu"),
-  sizeId: z.number().int().positive("Chọn cỡ"),
+  /**
+   * Optional axis. The admin form ships `0` for the "--" option; we accept it
+   * here and convert to `undefined` in `ProductForm.submit` before hitting
+   * the backend so the variant row lands with `color_id = null`.
+   */
+  colorId: z.number().int().nonnegative().optional(),
+  sizeId: z.number().int().nonnegative().optional(),
   skuCode: z.string().min(2, "SKU tối thiểu 2 ký tự").max(60),
   price: z.number().int().positive("Giá phải > 0"),
   salePrice: z.number().int().nonnegative().nullable().optional(),

@@ -101,7 +101,18 @@ export function ProductForm({
   }
 
   const submit: SubmitHandler<ProductFormInput> = (values) => {
-    onSubmit(values, thumbnail);
+    // "--" sentinel (`0`) means "no color/size axis". Drop those keys so the
+    // backend stores `color_id = null` / `size_id = null` rather than a
+    // reference to id-0 which doesn't exist.
+    const normalized: ProductFormInput = {
+      ...values,
+      variants: values.variants.map((v) => ({
+        ...v,
+        colorId: v.colorId && v.colorId > 0 ? v.colorId : undefined,
+        sizeId: v.sizeId && v.sizeId > 0 ? v.sizeId : undefined,
+      })),
+    };
+    onSubmit(normalized, thumbnail);
   };
 
   const errors = form.formState.errors;
@@ -320,7 +331,7 @@ export function ProductForm({
                 })}
                 containerClassName="col-span-3"
               >
-                <option value={0}>--</option>
+                <option value={0}>— Không phân màu —</option>
                 {(colors.data ?? []).map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -337,7 +348,7 @@ export function ProductForm({
                 })}
                 containerClassName="col-span-2"
               >
-                <option value={0}>--</option>
+                <option value={0}>— Không phân cỡ —</option>
                 {(sizes.data ?? []).map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}

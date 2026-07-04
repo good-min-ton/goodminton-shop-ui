@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import type { ProductVariant } from "@/types/api";
+import type { Color, ProductVariant } from "@/types/api";
 import { cn } from "@/lib/utils";
 
 interface VariantSelectorProps {
@@ -10,30 +10,40 @@ interface VariantSelectorProps {
   onSelect: (variantId: number) => void;
 }
 
+/**
+ * Color × size picker. Any product may have neither axis, only one axis, or
+ * both — variants with missing color/size are handled gracefully instead of
+ * rendering DEFAULT/ONE_SIZE placeholders.
+ */
 export function VariantSelector({
   variants,
   selectedVariantId,
   onSelect,
 }: Readonly<VariantSelectorProps>) {
-  const distinctColors = useMemo(() => {
-    const map = new Map<number, ProductVariant["color"]>();
-    for (const v of variants) map.set(v.color.id, v.color);
+  const distinctColors = useMemo<Color[]>(() => {
+    const map = new Map<number, Color>();
+    for (const v of variants) {
+      if (v.color) map.set(v.color.id, v.color);
+    }
     return Array.from(map.values());
   }, [variants]);
 
   const selected = variants.find((v) => v.id === selectedVariantId);
-  const selectedColorId = selected?.color.id ?? null;
+  const selectedColorId = selected?.color?.id ?? null;
 
-  const sizesForSelectedColor = useMemo(
-    () =>
-      variants.filter(
-        (v) => selectedColorId == null || v.color.id === selectedColorId,
-      ),
-    [variants, selectedColorId],
-  );
+  // Variants matching the currently-picked color. When the product has no
+  // color axis at all, this collapses to the full variant list.
+  const sizesForSelectedColor = useMemo(() => {
+    if (distinctColors.length === 0) return variants;
+    return variants.filter(
+      (v) => selectedColorId == null || v.color?.id === selectedColorId,
+    );
+  }, [variants, distinctColors.length, selectedColorId]);
+
+  const hasSizeOptions = variants.some((v) => v.size != null);
 
   function pickColor(colorId: number) {
-    const firstMatch = variants.find((v) => v.color.id === colorId);
+    const firstMatch = variants.find((v) => v.color?.id === colorId);
     if (firstMatch) onSelect(firstMatch.id);
   }
 
@@ -73,7 +83,7 @@ export function VariantSelector({
         </div>
       )}
 
-      {sizesForSelectedColor.length > 0 && (
+      {hasSizeOptions && sizesForSelectedColor.length > 0 && (
         <div>
           <span className="mb-2 block text-sm font-medium text-stone-700">
             Cỡ
@@ -84,6 +94,7 @@ export function VariantSelector({
               return (
                 <button
                   key={v.id}
+                  type="button"
                   onClick={() => onSelect(v.id)}
                   className={cn(
                     "font-mono rounded-lg border px-4 py-2 text-sm font-medium transition-colors",
@@ -93,7 +104,7 @@ export function VariantSelector({
                   )}
                   aria-pressed={active}
                 >
-                  {v.size.name}
+                  {v.size?.name ?? "—"}
                 </button>
               );
             })}

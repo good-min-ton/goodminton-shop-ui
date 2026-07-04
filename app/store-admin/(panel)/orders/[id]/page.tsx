@@ -20,7 +20,7 @@ import { ordersApi } from "@/lib/api/orders";
 import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
-import { formatVnd, formatDateTime } from "@/lib/utils";
+import { formatVnd, formatDateTime, variantLabel } from "@/lib/utils";
 
 export default function StoreAdminOrderDetailPage() {
   const params = useParams<{ id: string }>();
@@ -173,7 +173,7 @@ export default function StoreAdminOrderDetailPage() {
                       {it.productName}
                     </p>
                     <p className="text-admin-text-muted mt-0.5 text-xs">
-                      {it.color.name} · {it.size.name} · ×{it.quantity}
+                      {variantLabel(it.color, it.size)} · ×{it.quantity}
                     </p>
                     <p className="font-mono text-admin-text-muted mt-0.5 text-[11px]">
                       {it.skuCode}

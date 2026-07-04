@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { InventoryFormModal } from "@/components/admin/inventory-form-modal";
 import { inventoriesApi } from "@/lib/api/inventories";
 import { useMyStore } from "@/hooks/use-my-store";
+import { variantLabel } from "@/lib/utils";
 import type { Inventory } from "@/types/api";
 
 export default function StoreAdminInventoryPage() {
@@ -107,7 +108,7 @@ export default function StoreAdminInventoryPage() {
             header: "Phiên bản",
             render: (r: Inventory) => (
               <span className="text-admin-text-muted text-xs">
-                {r.color.name} · {r.size.name}
+                {variantLabel(r.color, r.size)}
               </span>
             ),
           },

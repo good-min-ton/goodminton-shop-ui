@@ -22,7 +22,7 @@ import { ordersApi } from "@/lib/api/orders";
 import { ApiException } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-messages";
 import { toast } from "@/store/toast-store";
-import { cn, formatVnd } from "@/lib/utils";
+import { cn, formatVnd, variantLabel } from "@/lib/utils";
 import type { Inventory, PaymentMethod, Product, ProductVariant } from "@/types/api";
 
 interface PosLine {
@@ -120,8 +120,8 @@ export default function PosPage() {
           productId: row.productId,
           productName: row.productName,
           skuCode: row.skuCode,
-          colorName: row.color.name,
-          sizeName: row.size.name,
+          colorName: row.color?.name ?? "",
+          sizeName: row.size?.name ?? "",
           unitPrice: meta?.price ?? 0,
           salePrice: meta?.salePrice ?? null,
           thumbnailUrl: meta?.thumbnailUrl ?? null,
@@ -384,7 +384,7 @@ function PosInventoryGrid({
                   {row.productName}
                 </p>
                 <p className="text-admin-text-muted mt-0.5 text-[10px]">
-                  {row.color.name} · {row.size.name}
+                  {variantLabel(row.color, row.size)}
                 </p>
                 <div className="mt-1.5 flex items-baseline justify-between">
                   <span className="font-mono text-amber-300 text-xs">

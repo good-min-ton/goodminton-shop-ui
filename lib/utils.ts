@@ -65,6 +65,28 @@ export function clamp(value: number, min: number, max: number): number {
 }
 
 /**
+ * Human-readable label for a variant's color × size axes. Skips whichever
+ * axis is absent so products with a single color or no size axis don't
+ * render placeholder text.
+ *
+ *   ({ name: "Đỏ" }, { name: "4U" }) → "Đỏ · 4U"
+ *   ({ name: "Đỏ" }, null)           → "Đỏ"
+ *   (null, { name: "4U" })           → "4U"
+ *   (null, null)                     → ""
+ *
+ * Also accepts pre-flattened strings so it can render `CartItem.colorName` /
+ * `CartItem.sizeName` where empty strings mean "no axis".
+ */
+export function variantLabel(
+  color: { name: string } | string | null | undefined,
+  size: { name: string } | string | null | undefined,
+): string {
+  const colorName = typeof color === "string" ? color : color?.name;
+  const sizeName = typeof size === "string" ? size : size?.name;
+  return [colorName, sizeName].filter((s) => s && s.length > 0).join(" · ");
+}
+
+/**
  * Inject a Cloudinary transformation segment into an `/image/upload/` URL.
  * Returns the original URL untouched if it isn't a Cloudinary upload URL —
  * safe to use as a blanket helper across all thumbnail render paths.

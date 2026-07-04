@@ -29,11 +29,12 @@ export function ProductCard({
   const display = onSale && salePrice != null ? salePrice : price;
   const href = `/products/${product.slug}`;
 
+  // Products may have variants without a color axis at all — filter those out
+  // before deduping so the swatch strip is empty rather than showing a
+  // placeholder.
   const distinctColors = Array.from(
     new Map(
-      product.variants
-        .filter((v) => !!v.color)
-        .map((v) => [v.color.id, v.color]),
+      product.variants.flatMap((v) => (v.color ? [[v.color.id, v.color]] : [])),
     ).values(),
   );
 
@@ -51,8 +52,8 @@ export function ProductCard({
       productSlug: product.slug,
       productName: product.name,
       thumbnailUrl: product.thumbnail?.url ?? null,
-      colorName: v.color.name,
-      sizeName: v.size.name,
+      colorName: v.color?.name ?? "",
+      sizeName: v.size?.name ?? "",
       skuCode: v.skuCode,
       unitPrice: v.price,
       salePrice: v.salePrice,

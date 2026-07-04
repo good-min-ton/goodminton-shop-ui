@@ -15,7 +15,7 @@ import {
 } from "@/hooks/use-dashboard";
 import { ordersApi } from "@/lib/api/orders";
 import { inventoriesApi } from "@/lib/api/inventories";
-import { formatVnd, formatDateTime } from "@/lib/utils";
+import { formatVnd, formatDateTime, variantLabel } from "@/lib/utils";
 import type { Inventory, Order } from "@/types/api";
 
 function lastNDays(n: number): { from: string; to: string } {
@@ -182,7 +182,7 @@ function LowStockSection({
                 {inv.productName}
               </p>
               <p className="text-admin-text-muted text-[11px]">
-                {inv.color.name} · {inv.size.name}
+                {variantLabel(inv.color, inv.size)}
               </p>
             </div>
             <span className={`font-mono text-sm font-medium ${qtyClass}`}>
