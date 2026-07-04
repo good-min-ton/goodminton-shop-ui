@@ -199,8 +199,8 @@ export default function PosPage() {
   return (
     <>
       <AdminPageHeader
-        title="Bán hàng tại quầy"
-        description="Tạo đơn IN_STORE, hệ thống tự deduct kho và đánh dấu đã thanh toán."
+        title="Tạo đơn hàng"
+        description="Tạo đơn tại cửa hàng — hệ thống tự trừ tồn kho và đánh dấu đã thanh toán."
       />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_400px]">

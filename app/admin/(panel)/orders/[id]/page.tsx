@@ -82,7 +82,7 @@ export default function AdminOrderDetailPage() {
       <div className="mb-6 flex items-center gap-3">
         <OrderStatusBadge status={o.status} className="text-sm" />
         <span className="bg-admin-surface-2 text-admin-text-muted inline-flex rounded-md px-2 py-0.5 text-[10px]">
-          {o.orderType === "ONLINE" ? "Online" : "Tại quầy"}
+          {o.orderType === "ONLINE" ? "Online" : "Tại cửa hàng"}
         </span>
         <span className="text-admin-text-muted font-mono text-xs">
           {formatDateTime(o.orderDate)}

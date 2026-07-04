@@ -84,7 +84,7 @@ export default function StoreAdminOrdersPage() {
             header: "Loại",
             render: (r: Order) => (
               <span className="bg-admin-surface-2 text-admin-text-muted inline-flex rounded-md px-2 py-0.5 text-[10px]">
-                {r.orderType === "ONLINE" ? "Online" : "Tại quầy"}
+                {r.orderType === "ONLINE" ? "Online" : "Tại cửa hàng"}
               </span>
             ),
           },

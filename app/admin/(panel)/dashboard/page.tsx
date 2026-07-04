@@ -64,7 +64,7 @@ export default function AdminDashboardPage() {
           loading={summary.isLoading}
         />
         <StatCard
-          label="Đơn tại quầy"
+          label="Đơn tại cửa hàng"
           value={s?.inStoreOrders ?? 0}
           loading={summary.isLoading}
         />
