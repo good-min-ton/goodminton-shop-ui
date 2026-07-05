@@ -3,41 +3,22 @@
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle2, XCircle, Clock } from "lucide-react";
+import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ordersApi } from "@/lib/api/orders";
+import { PAYOS_ORDER_ID_KEY } from "@/lib/api/payos";
 import type { Order } from "@/types/api";
 
 const POLL_INTERVAL_MS = 2000;
 const MAX_ATTEMPTS = 10;
 
-/**
- * VNPay response-code map. `00` = success; every other code is a specific
- * failure reason we surface to the user. Codes we don't know fall back to
- * a generic message.
- */
-const VNPAY_MESSAGES: Record<string, string> = {
-  "00": "Giao dịch thành công.",
-  "07": "Trừ tiền thành công. Giao dịch bị nghi ngờ gian lận — vui lòng liên hệ ngân hàng.",
-  "09": "Thẻ chưa đăng ký dịch vụ InternetBanking.",
-  "10": "Xác thực thông tin sai quá 3 lần.",
-  "11": "Đã hết hạn chờ thanh toán.",
-  "12": "Thẻ / tài khoản đã bị khoá.",
-  "13": "Nhập sai mật khẩu OTP.",
-  "24": "Bạn đã huỷ giao dịch.",
-  "51": "Tài khoản không đủ số dư.",
-  "65": "Tài khoản vượt hạn mức giao dịch trong ngày.",
-  "75": "Ngân hàng thanh toán đang bảo trì.",
-  "79": "Nhập sai mật khẩu thanh toán quá số lần quy định.",
-  "99": "Có lỗi xảy ra trong quá trình thanh toán.",
-};
-
 type State =
   | { kind: "polling"; attempt: number }
   | { kind: "success"; order: Order }
+  | { kind: "success-no-order" }
   | { kind: "pending-after-poll"; order: Order }
-  | { kind: "failed"; reason: string; orderId?: number };
+  | { kind: "failed"; reason: string };
 
 export default function PaymentResultPage() {
   return (
@@ -59,36 +40,58 @@ export default function PaymentResultPage() {
 
 function PaymentResultContent() {
   const sp = useSearchParams();
-  // VNPay redirects to us with vnp_* params. Backend has already verified the
-  // signature via the IPN channel — we only need to read the response code +
-  // txnRef to know what to show.
-  const responseCode = sp.get("vnp_ResponseCode");
-  const txStatus = sp.get("vnp_TransactionStatus");
-  const txnRef = sp.get("vnp_TxnRef");
+  // PayOS redirect params. `code=00` + `status=PAID` = success.
+  // `cancel=true` should have already been routed to /payment/cancel by
+  // PayOS, but we defensively handle it here too.
+  const code = sp.get("code");
+  const status = sp.get("status");
+  const cancel = sp.get("cancel") === "true";
+  const orderCode = sp.get("orderCode");
 
-  const parsedOrderId = txnRef ? Number(txnRef.split("-")[0]) : Number.NaN;
-  const orderId = Number.isFinite(parsedOrderId) ? parsedOrderId : null;
+  // Our internal orderId was stashed by checkout before the PayOS redirect.
+  // PayOS's `orderCode` is a separate number and we have no resolver yet, so
+  // sessionStorage is the only reliable link.
+  const [orderId] = useState<number | null>(() => {
+    if (globalThis.window === undefined) return null;
+    try {
+      const raw = sessionStorage.getItem(PAYOS_ORDER_ID_KEY);
+      const n = raw ? Number(raw) : Number.NaN;
+      return Number.isFinite(n) && n > 0 ? n : null;
+    } catch {
+      return null;
+    }
+  });
 
   const [state, setState] = useState<State>(() => {
-    if (!responseCode) {
+    if (!code && !status && !orderCode) {
       return {
         kind: "failed",
         reason:
-          "Không có thông tin từ VNPay. Vui lòng vào 'Đơn hàng của tôi' để kiểm tra.",
+          "Không có thông tin từ PayOS. Vui lòng vào 'Đơn hàng của tôi' để kiểm tra.",
       };
     }
-    if (responseCode !== "00" || txStatus !== "00") {
+    if (cancel || (code && code !== "00") || (status && status !== "PAID")) {
       return {
         kind: "failed",
-        reason: VNPAY_MESSAGES[responseCode] ?? "Giao dịch không thành công.",
-        orderId: orderId ?? undefined,
+        reason:
+          cancel || status === "CANCELLED"
+            ? "Bạn đã huỷ giao dịch. Đơn hàng vẫn ở trạng thái chờ thanh toán."
+            : "Giao dịch không thành công. Vui lòng thử lại hoặc chọn phương thức khác.",
       };
     }
-    if (!orderId) {
-      return { kind: "failed", reason: "Không đọc được mã đơn hàng." };
-    }
+    if (!orderId) return { kind: "success-no-order" };
     return { kind: "polling", attempt: 0 };
   });
+
+  // Clear the bridge key once we've read it — avoids stale reads on later
+  // /payment/result visits.
+  useEffect(() => {
+    try {
+      sessionStorage.removeItem(PAYOS_ORDER_ID_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     if (state.kind !== "polling" || !orderId) return;
@@ -114,7 +117,6 @@ function PaymentResultContent() {
           setState({
             kind: "failed",
             reason: "Không kiểm tra được trạng thái đơn hàng.",
-            orderId: orderId ?? undefined,
           });
           return;
         }
@@ -134,7 +136,7 @@ function PaymentResultContent() {
       <ResultCard
         icon={<Spinner className="text-primary-700" size={48} />}
         title="Đang xác nhận thanh toán..."
-        description={`VNPay đã ghi nhận. Đang chờ hệ thống cập nhật đơn hàng (${state.attempt + 1}/${MAX_ATTEMPTS}).`}
+        description={`PayOS đã ghi nhận. Đang chờ hệ thống cập nhật đơn hàng (${state.attempt + 1}/${MAX_ATTEMPTS}).`}
       />
     );
   }
@@ -159,12 +161,35 @@ function PaymentResultContent() {
     );
   }
 
+  if (state.kind === "success-no-order") {
+    // We lost the sessionStorage bridge (private tab, storage cleared, direct
+    // link from email…) but PayOS says success. Show a positive message and
+    // point the user at their order list.
+    return (
+      <ResultCard
+        icon={<CheckCircle2 size={56} className="text-emerald-600" />}
+        title="Thanh toán thành công"
+        description="PayOS đã ghi nhận giao dịch. Kiểm tra trạng thái đơn hàng trong mục Đơn hàng của tôi."
+        actions={
+          <>
+            <Link href="/orders">
+              <Button uppercase>Đơn hàng của tôi</Button>
+            </Link>
+            <Link href="/products">
+              <Button variant="secondary">Tiếp tục mua sắm</Button>
+            </Link>
+          </>
+        }
+      />
+    );
+  }
+
   if (state.kind === "pending-after-poll") {
     return (
       <ResultCard
         icon={<Clock size={56} className="text-amber-600" />}
         title="Đang xử lý"
-        description="Ngân hàng đã trừ tiền nhưng hệ thống chưa nhận được xác nhận từ VNPay. Đơn hàng sẽ tự cập nhật trong ít phút — bạn có thể refresh trang đơn hàng để kiểm tra lại."
+        description="Ngân hàng đã trừ tiền nhưng hệ thống chưa nhận được xác nhận từ PayOS. Đơn hàng sẽ tự cập nhật trong ít phút — bạn có thể refresh trang đơn hàng để kiểm tra lại."
         actions={
           <Link href={`/orders/${state.order.id}`}>
             <Button uppercase>Xem đơn hàng</Button>
@@ -177,16 +202,16 @@ function PaymentResultContent() {
   return (
     <ResultCard
       icon={<XCircle size={56} className="text-red-600" />}
-      title="Thanh toán thất bại"
+      title="Thanh toán không thành công"
       description={state.reason}
       actions={
         <>
-          {state.orderId == null ? (
+          {orderId == null ? (
             <Link href="/orders">
               <Button uppercase>Đơn hàng của tôi</Button>
             </Link>
           ) : (
-            <Link href={`/orders/${state.orderId}`}>
+            <Link href={`/orders/${orderId}`}>
               <Button uppercase>Xem đơn hàng</Button>
             </Link>
           )}

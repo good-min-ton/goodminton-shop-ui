@@ -228,7 +228,7 @@ export type OrderStatus =
 
 export type OrderType = "ONLINE" | "IN_STORE";
 
-export type PaymentMethod = "COD" | "VNPAY";
+export type PaymentMethod = "COD" | "PAYOS";
 export type PaymentStatus = "PENDING" | "PAID" | "FAILED";
 
 export interface OrderItem {
@@ -321,12 +321,13 @@ export interface RevenueByStore {
 }
 
 // ============================================================
-// VNPay
+// PayOS
 // ============================================================
 
-export interface VNPayCreateUrlResponse {
+export interface PayOSCreateUrlResponse {
   paymentUrl: string;
-  txnRef: string;
+  /** PayOS order code (Long) — distinct from our internal orderId. */
+  orderCode: number;
 }
 
 // ============================================================

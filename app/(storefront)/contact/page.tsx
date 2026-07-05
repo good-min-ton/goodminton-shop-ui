@@ -51,7 +51,7 @@ const FAQ = [
   },
   {
     q: "Có hỗ trợ thanh toán trả góp không?",
-    a: "Hiện tại Goodminton hỗ trợ COD, chuyển khoản và VNPay (thẻ ATM, Visa, QR). Trả góp qua thẻ tín dụng đang được triển khai trong giai đoạn tới.",
+    a: "Hiện tại Goodminton hỗ trợ COD (thanh toán khi nhận hàng) và PayOS (QR VietQR, chuyển khoản banking Việt Nam). Trả góp qua thẻ tín dụng đang được triển khai trong giai đoạn tới.",
   },
   {
     q: "Bảo hành sản phẩm thế nào?",

@@ -15,7 +15,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { useAddressStore } from "@/store/address-store";
 import { toast } from "@/store/toast-store";
 import { ordersApi } from "@/lib/api/orders";
-import { vnpayApi } from "@/lib/api/vnpay";
+import { payosApi, PAYOS_ORDER_ID_KEY } from "@/lib/api/payos";
 import { getErrorMessage } from "@/lib/error-messages";
 import { formatVnd, cn } from "@/lib/utils";
 import {
@@ -45,9 +45,9 @@ const PAYMENT_OPTIONS: {
     icon: Banknote,
   },
   {
-    value: "VNPAY",
-    label: "VNPay (thẻ ATM, Visa, QR)",
-    description: "Thanh toán online qua cổng VNPay an toàn.",
+    value: "PAYOS",
+    label: "PayOS (QR VietQR, chuyển khoản)",
+    description: "Thanh toán online qua PayOS — quét QR hoặc chuyển khoản banking Việt Nam.",
     icon: CreditCard,
   },
 ];
@@ -119,8 +119,8 @@ function CheckoutContent() {
         note: values.note || undefined,
       });
 
-      if (values.paymentMethod === "VNPAY") {
-        const { paymentUrl } = await vnpayApi.createPaymentUrl(order.id);
+      if (values.paymentMethod === "PAYOS") {
+        const { paymentUrl } = await payosApi.createPaymentUrl(order.id);
         return { order, paymentUrl };
       }
       return { order, paymentUrl: null };
@@ -128,6 +128,14 @@ function CheckoutContent() {
     onSuccess: ({ order, paymentUrl }) => {
       clear();
       if (paymentUrl) {
+        // Stash our internal orderId so /payment/result can poll — PayOS's
+        // `orderCode` query param is a separate number and there's no
+        // resolver endpoint on the backend yet.
+        try {
+          sessionStorage.setItem(PAYOS_ORDER_ID_KEY, String(order.id));
+        } catch {
+          /* private mode / storage disabled — fine, result page falls back */
+        }
         globalThis.location.href = paymentUrl;
       } else {
         toast("Đặt hàng thành công!", "success");
@@ -355,12 +363,12 @@ function CheckoutContent() {
             className="mt-5 w-full"
             loading={placeOrder.isPending}
           >
-            {paymentMethod === "VNPAY" ? "Thanh toán VNPay" : "Đặt hàng"}
+            {paymentMethod === "PAYOS" ? "Thanh toán PayOS" : "Đặt hàng"}
           </Button>
 
-          {paymentMethod === "VNPAY" && (
+          {paymentMethod === "PAYOS" && (
             <p className="mt-3 text-center text-xs text-stone-500">
-              Bạn sẽ được chuyển sang trang VNPay sau khi xác nhận.
+              Bạn sẽ được chuyển sang trang PayOS sau khi xác nhận.
             </p>
           )}
         </aside>
