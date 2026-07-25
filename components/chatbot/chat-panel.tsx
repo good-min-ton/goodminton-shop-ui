@@ -102,6 +102,7 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
             role: "assistant",
             content: res.answer,
             sources: res.sources,
+            products: res.products,
             ts: Date.now(),
           },
         ]);
@@ -260,13 +261,7 @@ function MessageBubble({ message }: Readonly<{ message: ChatMessage }>) {
   const isUser = message.role === "user";
   const productIds = isUser
     ? []
-    : Array.from(
-        new Set(
-          (message.sources ?? [])
-            .filter((s) => s.doc_type === "product")
-            .map((s) => Number(s.source_id)),
-        ),
-      )
+    : Array.from(new Set((message.products ?? []).map((id) => Number(id))))
         .filter((n) => Number.isInteger(n) && n > 0)
         .slice(0, 6);
   return (

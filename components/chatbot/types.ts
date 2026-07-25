@@ -7,6 +7,8 @@ export interface ChatMessage {
   ts?: number;
   /** Sources returned by backend for assistant messages. */
   sources?: SourceRef[];
+  /** product_ids the answer recommends — drives the product cards. */
+  products?: string[];
 }
 
 export interface SourceRef {
@@ -22,4 +24,5 @@ export interface ChatRequest {
 export interface ChatResponse {
   answer: string;
   sources: SourceRef[];
+  products?: string[];
 }
