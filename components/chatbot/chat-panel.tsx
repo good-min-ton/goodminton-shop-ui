@@ -266,12 +266,15 @@ function MessageBubble({ message }: Readonly<{ message: ChatMessage }>) {
   const fromSources = (message.sources ?? [])
     .filter((s) => s.doc_type === "product")
     .map((s) => s.source_id);
-  const rawIds = recommended.length > 0 ? recommended : fromSources;
+  // Matched recommendations → show exactly what the answer named (already 2-3).
+  // Fallback (answer named none) → a small, query-relevant set, not all 5 retrieved.
+  const rawIds =
+    recommended.length > 0 ? recommended : fromSources.slice(0, 3);
   const productIds = isUser
     ? []
     : Array.from(new Set(rawIds.map((id) => Number(id))))
         .filter((n) => Number.isInteger(n) && n > 0)
-        .slice(0, 6);
+        .slice(0, 4);
   return (
     <div className={cn("flex flex-col gap-2", isUser ? "items-end" : "items-start")}>
       <div
