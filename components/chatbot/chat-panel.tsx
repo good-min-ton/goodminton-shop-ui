@@ -103,6 +103,7 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
             content: res.answer,
             sources: res.sources,
             products: res.products,
+            order_draft: res.order_draft,
             ts: Date.now(),
           },
         ]);

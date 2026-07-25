@@ -9,6 +9,11 @@ export interface ChatMessage {
   sources?: SourceRef[];
   /** product_ids the answer recommends — drives the product cards. */
   products?: string[];
+  /** Priced order draft returned by RAG for this assistant turn. */
+  order_draft?: OrderDraft;
+  /** Client-only: set to the created order id after a successful placement.
+   *  Persisted to localStorage → durable single-write guard across reloads. */
+  placedOrderId?: number;
 }
 
 export interface SourceRef {
@@ -25,4 +30,29 @@ export interface ChatResponse {
   answer: string;
   sources: SourceRef[];
   products?: string[];
+  order_draft?: OrderDraft;
+}
+
+/** One line of a RAG-prepared order draft. Mirrors the canonical contract
+ *  EXACTLY — product_id/variant_id are STRINGS (RAG convention); the UI does
+ *  Number() only at the ordersApi.create boundary. size/color are kept
+ *  SEPARATE from product_name so a wrong-variant map is visible to the user. */
+export interface OrderDraftItem {
+  product_id: string;
+  variant_id: string;
+  product_name: string;
+  size: string | null;
+  color: string | null;
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+  in_stock: boolean;
+}
+
+/** Priced, stock-checked draft emitted by the RAG `prepare_order` tool. */
+export interface OrderDraft {
+  items: OrderDraftItem[];
+  total: number;
+  currency: string;
+  warnings: string[];
 }
