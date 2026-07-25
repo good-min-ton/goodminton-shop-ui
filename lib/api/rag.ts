@@ -28,7 +28,7 @@ export async function generateProductDescription(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       style: opts.style ?? "ban_hang",
-      length: opts.length ?? "medium",
+      length: opts.length ?? "long",
       keywords: opts.keywords ?? [],
     }),
   });
