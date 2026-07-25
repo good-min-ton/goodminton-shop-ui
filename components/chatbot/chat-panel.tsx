@@ -11,6 +11,7 @@ import { Send, Sparkles, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useQueries } from "@tanstack/react-query";
 import { ChatApiError, sendChat } from "./api";
+import { OrderConfirmCard } from "./order-confirm-card";
 import type { ChatMessage } from "./types";
 import { productsApi } from "@/lib/api/products";
 import { getDisplayPrice } from "@/hooks/use-products";
@@ -120,6 +121,20 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
     [loading, messages],
   );
 
+  // Durable single-write guard: stamp placedOrderId onto the message (keyed by
+  // ts) exactly once. This re-persists to localStorage via the existing effect,
+  // so a reload keeps the card locked to its "Đã đặt #id" state and the button
+  // never re-arms. The `placedOrderId == null` check makes the write idempotent.
+  const markPlaced = useCallback((ts: number, orderId: number) => {
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.ts === ts && m.placedOrderId == null
+          ? { ...m, placedOrderId: orderId }
+          : m,
+      ),
+    );
+  }, []);
+
   function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -183,7 +198,13 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
           <EmptyState onPick={send} />
         ) : (
           messages.map((m, i) => (
-            <MessageBubble key={m.ts ?? i} message={m} />
+            <MessageBubble
+              key={m.ts ?? i}
+              message={m}
+              onPlaced={(orderId) => {
+                if (m.ts != null) markPlaced(m.ts, orderId);
+              }}
+            />
           ))
         )}
         {loading && <LoadingBubble />}
@@ -258,7 +279,10 @@ function EmptyState({ onPick }: Readonly<{ onPick: (text: string) => void }>) {
   );
 }
 
-function MessageBubble({ message }: Readonly<{ message: ChatMessage }>) {
+function MessageBubble({
+  message,
+  onPlaced,
+}: Readonly<{ message: ChatMessage; onPlaced: (orderId: number) => void }>) {
   const isUser = message.role === "user";
   // Prefer the products the answer actually recommends; if the model didn't
   // name any retrieved product (common with the small model), fall back to the
@@ -289,6 +313,13 @@ function MessageBubble({ message }: Readonly<{ message: ChatMessage }>) {
         {message.content}
       </div>
       {productIds.length > 0 && <ProductSourceCards ids={productIds} />}
+      {!isUser && message.order_draft && (
+        <OrderConfirmCard
+          draft={message.order_draft}
+          placedOrderId={message.placedOrderId}
+          onPlaced={onPlaced}
+        />
+      )}
     </div>
   );
 }
