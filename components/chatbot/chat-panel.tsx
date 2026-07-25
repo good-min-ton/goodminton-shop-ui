@@ -8,8 +8,14 @@ import {
   useState,
 } from "react";
 import { Send, Sparkles, Trash2, X } from "lucide-react";
+import Link from "next/link";
+import { useQueries } from "@tanstack/react-query";
 import { ChatApiError, sendChat } from "./api";
 import type { ChatMessage } from "./types";
+import { productsApi } from "@/lib/api/products";
+import { getDisplayPrice } from "@/hooks/use-products";
+import { formatPrice } from "@/lib/utils";
+import type { Product } from "@/types/api";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "gm.chat-history";
@@ -252,13 +258,19 @@ function EmptyState({ onPick }: Readonly<{ onPick: (text: string) => void }>) {
 
 function MessageBubble({ message }: Readonly<{ message: ChatMessage }>) {
   const isUser = message.role === "user";
+  const productIds = isUser
+    ? []
+    : Array.from(
+        new Set(
+          (message.sources ?? [])
+            .filter((s) => s.doc_type === "product")
+            .map((s) => Number(s.source_id)),
+        ),
+      )
+        .filter((n) => Number.isInteger(n) && n > 0)
+        .slice(0, 6);
   return (
-    <div
-      className={cn(
-        "flex",
-        isUser ? "justify-end" : "justify-start",
-      )}
-    >
+    <div className={cn("flex flex-col gap-2", isUser ? "items-end" : "items-start")}>
       <div
         className={cn(
           "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap",
@@ -269,6 +281,60 @@ function MessageBubble({ message }: Readonly<{ message: ChatMessage }>) {
       >
         {message.content}
       </div>
+      {productIds.length > 0 && <ProductSourceCards ids={productIds} />}
+    </div>
+  );
+}
+
+/** Product cards for the products a chat answer is grounded in. Fetches image/
+ *  price/slug from shop-api (RAG returns only ids); clicking opens the product. */
+function ProductSourceCards({ ids }: Readonly<{ ids: number[] }>) {
+  const results = useQueries({
+    queries: ids.map((id) => ({
+      queryKey: ["product", id],
+      queryFn: () => productsApi.detail(id),
+      staleTime: 10 * 60 * 1000,
+    })),
+  });
+  const products = results
+    .map((r) => r.data)
+    .filter((p): p is Product => !!p && p.isVisible);
+  if (products.length === 0) return null;
+  return (
+    <div className="flex max-w-full gap-2 overflow-x-auto pb-1">
+      {products.map((p) => {
+        const { price, salePrice } = getDisplayPrice(p);
+        return (
+          <Link
+            key={p.id}
+            href={`/products/${p.slug}`}
+            className="group flex w-28 flex-shrink-0 flex-col overflow-hidden rounded-lg border border-stone-200 bg-white transition-shadow hover:shadow-md"
+          >
+            <div className="aspect-square overflow-hidden bg-stone-100">
+              {p.thumbnail?.url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={p.thumbnail.url}
+                  alt={p.name}
+                  className="h-full w-full object-contain transition-transform group-hover:scale-105"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-[10px] text-stone-400">
+                  Không có ảnh
+                </div>
+              )}
+            </div>
+            <div className="flex flex-1 flex-col gap-0.5 p-1.5">
+              <p className="line-clamp-2 text-[11px] leading-tight font-medium text-stone-800">
+                {p.name}
+              </p>
+              <p className="text-primary-700 mt-auto text-[11px] font-semibold">
+                {formatPrice(salePrice ?? price)}đ
+              </p>
+            </div>
+          </Link>
+        );
+      })}
     </div>
   );
 }
