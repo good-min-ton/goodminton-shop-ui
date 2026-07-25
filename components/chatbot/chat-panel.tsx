@@ -259,9 +259,17 @@ function EmptyState({ onPick }: Readonly<{ onPick: (text: string) => void }>) {
 
 function MessageBubble({ message }: Readonly<{ message: ChatMessage }>) {
   const isUser = message.role === "user";
+  // Prefer the products the answer actually recommends; if the model didn't
+  // name any retrieved product (common with the small model), fall back to the
+  // products retrieved for this query so the cards are at least query-relevant.
+  const recommended = message.products ?? [];
+  const fromSources = (message.sources ?? [])
+    .filter((s) => s.doc_type === "product")
+    .map((s) => s.source_id);
+  const rawIds = recommended.length > 0 ? recommended : fromSources;
   const productIds = isUser
     ? []
-    : Array.from(new Set((message.products ?? []).map((id) => Number(id))))
+    : Array.from(new Set(rawIds.map((id) => Number(id))))
         .filter((n) => Number.isInteger(n) && n > 0)
         .slice(0, 6);
   return (
