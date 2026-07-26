@@ -21,9 +21,13 @@ import {
 } from "@/hooks/use-catalog";
 import { slugify } from "@/lib/utils";
 import { productSchema, type ProductFormInput } from "@/lib/validation/product";
+import { generateProductDescription } from "@/lib/api/rag";
+import { toast } from "@/store/toast-store";
 
 interface ProductFormProps {
   initial?: Partial<ProductFormInput>;
+  /** Existing product id — present only in edit mode; enables auto-description. */
+  productId?: number;
   initialThumbnailUrl?: string | null;
   submitting?: boolean;
   submitLabel?: string;
@@ -40,6 +44,7 @@ const EMPTY_VARIANT = {
 
 export function ProductForm({
   initial,
+  productId,
   initialThumbnailUrl,
   submitting,
   submitLabel = "Lưu",
@@ -72,6 +77,28 @@ export function ProductForm({
           : [{ ...EMPTY_VARIANT }],
     },
   });
+
+  const [generating, setGenerating] = useState(false);
+
+  // Auto-generate a Vietnamese description via the RAG LLM (edit mode only —
+  // RAG fetches the product's attributes by id). Fills the editor as a draft;
+  // the admin reviews/edits and Save persists it.
+  const handleGenerateDescription = async () => {
+    if (!productId) return;
+    setGenerating(true);
+    try {
+      const text = await generateProductDescription(productId);
+      form.setValue("description", text, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      toast("Đã tạo mô tả — kiểm tra và chỉnh sửa trước khi lưu", "success");
+    } catch {
+      toast("Không tạo được mô tả tự động", "error");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const specs = useFieldArray({
     control: form.control,
@@ -184,7 +211,21 @@ export function ProductForm({
           </Select>
 
           <div className="flex flex-col gap-1.5 lg:col-span-2">
-            <span className="text-sm font-medium text-stone-200">Mô tả</span>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-stone-200">Mô tả</span>
+              {productId ? (
+                <Button
+                  type="button"
+                  variant="admin-ghost"
+                  size="sm"
+                  loading={generating}
+                  disabled={generating}
+                  onClick={handleGenerateDescription}
+                >
+                  {generating ? "Đang tạo..." : "Tạo mô tả tự động"}
+                </Button>
+              ) : null}
+            </div>
             <Controller
               control={form.control}
               name="description"

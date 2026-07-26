@@ -64,6 +64,7 @@ export default function EditProductPage() {
       />
 
       <ProductForm
+        productId={p.id}
         initial={{
           name: p.name,
           slug: p.slug,
