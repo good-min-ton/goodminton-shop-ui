@@ -44,6 +44,12 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
   const [attachedPreview, setAttachedPreview] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Revoke the preview object URL when it changes or on unmount.
+  useEffect(() => {
+    if (!attachedPreview) return;
+    return () => URL.revokeObjectURL(attachedPreview);
+  }, [attachedPreview]);
+
   // Restore from localStorage on first mount.
   useEffect(() => {
     try {
