@@ -21,6 +21,8 @@ export function HeaderSearch() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageSearchGeneration = useRef(0);
+  const imgStatus = useImageSearchStore((s) => s.status);
 
   const suggest = useQuery({
     queryKey: ["search", "products", "suggest", debounced],
@@ -74,6 +76,7 @@ export function HeaderSearch() {
     e.target.value = ""; // allow re-selecting the same file later
     if (!file) return;
 
+    const generation = ++imageSearchGeneration.current;
     const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
     const store = useImageSearchStore.getState();
     setOpen(false);
@@ -82,6 +85,7 @@ export function HeaderSearch() {
     router.push("/products?mode=image");
 
     if (!ACCEPTED.includes(file.type)) {
+      if (generation !== imageSearchGeneration.current) return;
       store.fail("Định dạng ảnh không hỗ trợ. Dùng JPG, PNG hoặc WEBP.");
       return;
     }
@@ -93,8 +97,10 @@ export function HeaderSearch() {
         .map(Number)
         .filter((n) => Number.isInteger(n) && n > 0);
       const items = ids.length > 0 ? await searchApi.listItemsByIds(ids) : [];
+      if (generation !== imageSearchGeneration.current) return;
       store.succeed(items);
     } catch {
+      if (generation !== imageSearchGeneration.current) return;
       store.fail("Không tìm được sản phẩm từ ảnh. Thử lại nhé.");
     }
   }
@@ -112,7 +118,8 @@ export function HeaderSearch() {
       <button
         type="button"
         onClick={() => fileInputRef.current?.click()}
-        className="rounded-lg p-2 text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+        disabled={imgStatus === "loading"}
+        className="rounded-lg p-2 text-stone-600 hover:bg-stone-100 hover:text-stone-900 disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label="Tìm bằng hình ảnh"
       >
         <Camera size={20} />
