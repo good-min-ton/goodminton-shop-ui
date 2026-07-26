@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, X } from "lucide-react";
+import { Camera, Search, X } from "lucide-react";
 import { searchApi } from "@/lib/api/search";
+import { downscaleImage } from "@/lib/image-downscale";
+import { useImageSearchStore } from "@/store/image-search-store";
 import { useDebouncedValue } from "@/hooks/use-debounce";
 import { Spinner } from "@/components/ui/spinner";
 import { cldThumb, cn, formatVnd } from "@/lib/utils";
@@ -18,6 +20,7 @@ export function HeaderSearch() {
   const debounced = useDebouncedValue(query.trim(), 250);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const suggest = useQuery({
     queryKey: ["search", "products", "suggest", debounced],
@@ -66,6 +69,36 @@ export function HeaderSearch() {
     router.push(`/products?q=${encodeURIComponent(q)}`);
   }
 
+  async function onImageSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file later
+    if (!file) return;
+
+    const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
+    const store = useImageSearchStore.getState();
+    setOpen(false);
+    setQuery("");
+    store.start();
+    router.push("/products?mode=image");
+
+    if (!ACCEPTED.includes(file.type)) {
+      store.fail("Định dạng ảnh không hỗ trợ. Dùng JPG, PNG hoặc WEBP.");
+      return;
+    }
+
+    try {
+      const downscaled = await downscaleImage(file);
+      const { product_ids } = await searchApi.searchByImage(downscaled);
+      const ids = product_ids
+        .map(Number)
+        .filter((n) => Number.isInteger(n) && n > 0);
+      const items = ids.length > 0 ? await searchApi.listItemsByIds(ids) : [];
+      store.succeed(items);
+    } catch {
+      store.fail("Không tìm được sản phẩm từ ảnh. Thử lại nhé.");
+    }
+  }
+
   return (
     <div ref={wrapperRef} className="relative">
       <button
@@ -76,6 +109,21 @@ export function HeaderSearch() {
       >
         <Search size={20} />
       </button>
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        className="rounded-lg p-2 text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+        aria-label="Tìm bằng hình ảnh"
+      >
+        <Camera size={20} />
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={onImageSelected}
+      />
 
       {open && (
         <div className="animate-fade-in fixed top-[72px] right-0 left-0 z-50 border-t border-stone-200 bg-white shadow-lg md:absolute md:top-12 md:left-auto md:w-[420px] md:rounded-xl md:border md:shadow-xl">

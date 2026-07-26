@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Spinner } from "@/components/ui/spinner";
 import { useProductList } from "@/hooks/use-products";
 import { searchApi } from "@/lib/api/search";
+import { useImageSearchStore } from "@/store/image-search-store";
 import { formatVnd } from "@/lib/utils";
 import type { ProductListItem } from "@/types/api";
 
@@ -49,6 +50,7 @@ function ProductsListing() {
   const sortKey = sp.get("sort") ?? "createdAt:desc";
   const q = (sp.get("q") ?? "").trim();
   const useSearch = q.length >= 2;
+  const imageMode = sp.get("mode") === "image";
 
   function updateQuery(updates: Record<string, string | null>) {
     const next = new URLSearchParams(sp.toString());
@@ -61,7 +63,14 @@ function ProductsListing() {
 
   return (
     <div className="container-app py-10">
-      {useSearch ? (
+      {imageMode ? (
+        <ImageSearchResults
+          onClear={() => {
+            useImageSearchStore.getState().reset();
+            updateQuery({ mode: null });
+          }}
+        />
+      ) : useSearch ? (
         <SearchResults q={q} onClear={() => updateQuery({ q: null })} />
       ) : (
         <ListingWithFilters
@@ -237,6 +246,67 @@ function SearchResults({ q, onClear }: Readonly<SearchResultsProps>) {
         onPageChange={setPage}
         className="mt-10"
       />
+    </>
+  );
+}
+
+function ImageSearchResults({ onClear }: Readonly<{ onClear: () => void }>) {
+  const status = useImageSearchStore((s) => s.status);
+  const results = useImageSearchStore((s) => s.results);
+  const error = useImageSearchStore((s) => s.error);
+
+  return (
+    <>
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-display text-stone-900 text-4xl font-extrabold tracking-tight">
+            Sản phẩm giống ảnh của bạn
+          </h1>
+          <p className="mt-2 text-sm text-stone-500">
+            {status === "loading"
+              ? "Đang tìm..."
+              : `${results.length} sản phẩm`}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onClear}
+          className="text-primary-700 text-sm font-medium hover:underline"
+        >
+          Xoá tìm kiếm
+        </button>
+      </div>
+
+      {status === "idle" && (
+        <EmptyState
+          title="Chưa có kết quả tìm bằng ảnh"
+          description="Dùng nút 📷 trên thanh tìm kiếm để tìm sản phẩm bằng hình ảnh."
+        />
+      )}
+      {status === "loading" && (
+        <div className="flex justify-center py-20">
+          <Spinner className="text-primary-700" size={32} />
+        </div>
+      )}
+      {status === "error" && (
+        <EmptyState
+          title="Không tìm được sản phẩm từ ảnh"
+          description={error ?? "Thử lại với ảnh khác nhé."}
+        />
+      )}
+      {status === "success" && results.length === 0 && (
+        <EmptyState
+          title="Không tìm thấy sản phẩm giống ảnh"
+          description="Thử chụp rõ hơn hoặc dùng ảnh khác."
+        />
+      )}
+      {status === "success" && results.length > 0 && (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          {results.map((p) => (
+            <SearchResultCard key={p.id} product={p} />
+          ))}
+        </div>
+      )}
     </>
   );
 }
