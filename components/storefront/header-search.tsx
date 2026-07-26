@@ -93,9 +93,9 @@ export function HeaderSearch() {
     try {
       const downscaled = await downscaleImage(file);
       const { product_ids } = await searchApi.searchByImage(downscaled);
-      const ids = product_ids
-        .map(Number)
-        .filter((n) => Number.isInteger(n) && n > 0);
+      const ids = Array.from(
+        new Set(product_ids.map(Number).filter((n) => Number.isInteger(n) && n > 0)),
+      );
       const items = ids.length > 0 ? await searchApi.listItemsByIds(ids) : [];
       if (generation !== imageSearchGeneration.current) return;
       store.succeed(items);
