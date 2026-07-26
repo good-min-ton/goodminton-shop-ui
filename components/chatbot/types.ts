@@ -14,6 +14,9 @@ export interface ChatMessage {
   /** Client-only: set to the created order id after a successful placement.
    *  Persisted to localStorage → durable single-write guard across reloads. */
   placedOrderId?: number;
+  /** Client-only: small data-URL thumbnail of an image the user sent for
+   *  visual search. Display-only; not sent to any backend. */
+  image?: string;
 }
 
 export interface SourceRef {
