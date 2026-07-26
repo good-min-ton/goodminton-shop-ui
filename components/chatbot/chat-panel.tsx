@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useQueries } from "@tanstack/react-query";
 import { ChatApiError, sendChat } from "./api";
 import { OrderConfirmCard } from "./order-confirm-card";
+import { getChatSessionId } from "./session";
 import type { ChatMessage } from "./types";
 import { productsApi } from "@/lib/api/products";
 import { getDisplayPrice } from "@/hooks/use-products";
@@ -96,7 +97,11 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
           role: m.role,
           content: m.content,
         }));
-        const res = await sendChat({ message: trimmed, chat_history: history });
+        const res = await sendChat({
+          message: trimmed,
+          chat_history: history,
+          session_id: getChatSessionId(),
+        });
         setMessages((prev) => [
           ...prev,
           {

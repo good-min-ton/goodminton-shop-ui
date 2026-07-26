@@ -24,6 +24,8 @@ export interface SourceRef {
 export interface ChatRequest {
   message: string;
   chat_history?: { role: ChatRole; content: string }[];
+  /** Stable per-browser id — helps backend group tracing across turns. */
+  session_id?: string;
 }
 
 export interface ChatResponse {
