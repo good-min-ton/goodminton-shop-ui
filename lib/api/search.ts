@@ -9,6 +9,14 @@ import type {
   Store,
 } from "@/types/api";
 
+const RAG_API_URL =
+  process.env.NEXT_PUBLIC_RAG_API_URL?.replace(/\/$/, "") ?? "";
+
+/** RAG /search/image response — H1 contract: ranked product ids as strings. */
+export interface ImageSearchResponse {
+  product_ids: string[];
+}
+
 export interface SearchPageQuery {
   q: string;
   /** 1-based on FE; converted to 0-based for backend search service. */
@@ -73,5 +81,34 @@ export const searchApi = {
 
   stores(query: SearchPageQuery) {
     return searchPaged<Store>("/api/search/stores", query);
+  },
+
+  /** Visual search: POST the image to RAG /search/image (multipart field
+   *  `file` — H2) and read back ranked product ids (strings — H1). Hits the
+   *  RAG service directly (raw JSON, not the shop-api {code,result} envelope,
+   *  mirroring components/chatbot/api.ts). */
+  async searchByImage(file: File | Blob): Promise<ImageSearchResponse> {
+    if (!RAG_API_URL) {
+      throw new Error("Image search chưa được cấu hình.");
+    }
+    const fd = new FormData();
+    fd.append("file", file, "upload.jpg"); // H2: field name `file`
+    const res = await fetch(`${RAG_API_URL}/search/image`, {
+      method: "POST",
+      body: fd,
+    });
+    if (!res.ok) {
+      throw new Error(`Image search failed (${res.status})`);
+    }
+    return res.json() as Promise<ImageSearchResponse>;
+  },
+
+  /** Hydrate RAG image-search ids → list items via shop-api. Order + is_visible
+   *  are enforced server-side (H8); the UI renders the array as-received. */
+  listItemsByIds(ids: number[]): Promise<ProductListItem[]> {
+    if (ids.length === 0) return Promise.resolve([]);
+    return api.get<ProductListItem[]>(
+      `/api/products/list-items?ids=${ids.join(",")}`,
+    );
   },
 };

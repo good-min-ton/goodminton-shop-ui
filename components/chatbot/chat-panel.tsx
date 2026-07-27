@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Send, Sparkles, Trash2, X } from "lucide-react";
+import { Image as ImageIcon, Send, Sparkles, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useQueries } from "@tanstack/react-query";
 import { ChatApiError, sendChat } from "./api";
@@ -15,6 +15,8 @@ import { OrderConfirmCard } from "./order-confirm-card";
 import { getChatSessionId } from "./session";
 import type { ChatMessage } from "./types";
 import { productsApi } from "@/lib/api/products";
+import { searchApi } from "@/lib/api/search";
+import { downscaleImage, makeThumbnailDataUrl } from "@/lib/image-downscale";
 import { getDisplayPrice } from "@/hooks/use-products";
 import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/types/api";
@@ -38,7 +40,16 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [attachedPreview, setAttachedPreview] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Revoke the preview object URL when it changes or on unmount.
+  useEffect(() => {
+    if (!attachedPreview) return;
+    return () => URL.revokeObjectURL(attachedPreview);
+  }, [attachedPreview]);
 
   // Persist on every change.
   useEffect(() => {
@@ -119,6 +130,69 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
     [loading, messages],
   );
 
+  const attachImage = useCallback((file: File) => {
+    const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
+    if (!ACCEPTED.includes(file.type)) return;
+    setAttachedFile(file);
+    setAttachedPreview(URL.createObjectURL(file));
+  }, []);
+
+  function onPaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const item = Array.from(e.clipboardData.items).find((it) =>
+      it.type.startsWith("image/"),
+    );
+    const file = item?.getAsFile();
+    if (file) {
+      e.preventDefault();
+      attachImage(file);
+    }
+  }
+
+  const sendImageSearch = useCallback(
+    async (file: File, caption: string) => {
+      if (loading) return;
+      // Small display thumbnail for the user bubble (upload uses a separate,
+      // larger downscale below). LLM is bypassed — this hits /search/image.
+      const thumb = await makeThumbnailDataUrl(file).catch(() => undefined);
+      const userMsg: ChatMessage = {
+        role: "user",
+        content: caption.trim() || "Tìm sản phẩm bằng hình ảnh",
+        image: thumb,
+        ts: Date.now(),
+      };
+      setMessages((prev) => [...prev, userMsg]);
+      setInput("");
+      setAttachedFile(null);
+      setAttachedPreview(null);
+      setLoading(true);
+      setError(null);
+
+      try {
+        const downscaled = await downscaleImage(file);
+        const { product_ids } = await searchApi.searchByImage(downscaled);
+        // MessageBubble caps product cards at 4 — match it here (don't carry 4 unused ids).
+        const ids = Array.from(new Set(product_ids)).slice(0, 4);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content:
+              ids.length > 0
+                ? "Đây là các sản phẩm giống ảnh của bạn"
+                : "Không tìm thấy sản phẩm giống ảnh.",
+            display_products: ids.map(Number),
+            ts: Date.now(),
+          },
+        ]);
+      } catch {
+        setError("Không tìm được sản phẩm từ ảnh. Thử lại nhé.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loading],
+  );
+
   // Durable single-write guard: stamp placedOrderId onto the message (keyed by
   // ts) exactly once. This re-persists to localStorage via the existing effect,
   // so a reload keeps the card locked to its "Đã đặt #id" state and the button
@@ -136,7 +210,8 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
   function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      send(input);
+      if (attachedFile) sendImageSearch(attachedFile, input);
+      else send(input);
     }
   }
 
@@ -214,12 +289,56 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
       </div>
 
       <footer className="border-t border-stone-200 bg-white p-3">
+        {attachedPreview && (
+          <div className="mb-2 flex items-center gap-2">
+            <div className="h-14 w-14 overflow-hidden rounded-lg border border-stone-200">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={attachedPreview}
+                alt="Ảnh đính kèm"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setAttachedFile(null);
+                setAttachedPreview(null);
+              }}
+              aria-label="Bỏ ảnh"
+              className="rounded-md p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-700"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
         <div className="flex items-end gap-2">
+          <button
+            type="button"
+            onClick={() => imageInputRef.current?.click()}
+            disabled={loading}
+            aria-label="Đính kèm hình ảnh"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700 disabled:opacity-40"
+          >
+            <ImageIcon size={16} />
+          </button>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              e.target.value = "";
+              if (f) attachImage(f);
+            }}
+          />
           <textarea
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
+            onPaste={onPaste}
             placeholder="Hỏi gì đó về vợt cầu lông..."
             rows={1}
             disabled={loading}
@@ -228,8 +347,10 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
           />
           <button
             type="button"
-            onClick={() => send(input)}
-            disabled={loading || !input.trim()}
+            onClick={() =>
+              attachedFile ? sendImageSearch(attachedFile, input) : send(input)
+            }
+            disabled={loading || (!input.trim() && !attachedFile)}
             aria-label="Gửi"
             className="bg-primary-700 hover:bg-primary-800 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-white transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           >
@@ -289,6 +410,14 @@ function MessageBubble({
         .slice(0, 4);
   return (
     <div className={cn("flex flex-col gap-2", isUser ? "items-end" : "items-start")}>
+      {message.image && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={message.image}
+          alt="Ảnh đã gửi"
+          className="max-w-[70%] rounded-2xl border border-stone-200"
+        />
+      )}
       <div
         className={cn(
           "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap",
