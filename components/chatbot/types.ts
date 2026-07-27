@@ -39,6 +39,7 @@ export interface ChatResponse {
   display_products?: number[];
   intent?: string | null;
   categories?: string[];
+  conversation_state?: unknown;
 }
 
 /** One line of a RAG-prepared order draft. Mirrors the canonical contract
