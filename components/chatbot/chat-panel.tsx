@@ -110,6 +110,7 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
             sources: res.sources,
             products: res.products,
             order_draft: res.order_draft,
+            display_products: res.display_products,
             ts: Date.now(),
           },
         ]);
@@ -289,20 +290,9 @@ function MessageBubble({
   onPlaced,
 }: Readonly<{ message: ChatMessage; onPlaced: (orderId: number) => void }>) {
   const isUser = message.role === "user";
-  // Prefer the products the answer actually recommends; if the model didn't
-  // name any retrieved product (common with the small model), fall back to the
-  // products retrieved for this query so the cards are at least query-relevant.
-  const recommended = message.products ?? [];
-  const fromSources = (message.sources ?? [])
-    .filter((s) => s.doc_type === "product")
-    .map((s) => s.source_id);
-  // Matched recommendations → show exactly what the answer named (already 2-3).
-  // Fallback (answer named none) → a small, query-relevant set, not all 5 retrieved.
-  const rawIds =
-    recommended.length > 0 ? recommended : fromSources.slice(0, 3);
   const productIds = isUser
     ? []
-    : Array.from(new Set(rawIds.map((id) => Number(id))))
+    : Array.from(new Set(message.display_products ?? []))
         .filter((n) => Number.isInteger(n) && n > 0)
         .slice(0, 4);
   return (

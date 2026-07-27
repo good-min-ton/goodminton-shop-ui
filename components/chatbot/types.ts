@@ -14,6 +14,8 @@ export interface ChatMessage {
   /** Client-only: set to the created order id after a successful placement.
    *  Persisted to localStorage → durable single-write guard across reloads. */
   placedOrderId?: number;
+  /** Structured card ids for this assistant message (backend-resolved). */
+  display_products?: number[];
 }
 
 export interface SourceRef {
@@ -33,6 +35,10 @@ export interface ChatResponse {
   sources: SourceRef[];
   products?: string[];
   order_draft?: OrderDraft;
+  /** Structured ids to render as cards for THIS message (supersedes products/sources). */
+  display_products?: number[];
+  intent?: string | null;
+  categories?: string[];
 }
 
 /** One line of a RAG-prepared order draft. Mirrors the canonical contract
