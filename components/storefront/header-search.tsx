@@ -13,6 +13,10 @@ import { Spinner } from "@/components/ui/spinner";
 import { cldThumb, cn, formatVnd } from "@/lib/utils";
 import type { ProductListItem } from "@/types/api";
 
+// RAG over-fetches candidates (×3) so enough survive the is_visible filter; show
+// only the top N most-similar after hydration to keep the grid focused.
+const IMAGE_SEARCH_DISPLAY_MAX = 12;
+
 export function HeaderSearch() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -98,7 +102,7 @@ export function HeaderSearch() {
       );
       const items = ids.length > 0 ? await searchApi.listItemsByIds(ids) : [];
       if (generation !== imageSearchGeneration.current) return;
-      store.succeed(items);
+      store.succeed(items.slice(0, IMAGE_SEARCH_DISPLAY_MAX));
     } catch {
       if (generation !== imageSearchGeneration.current) return;
       store.fail("Không tìm được sản phẩm từ ảnh. Thử lại nhé.");
