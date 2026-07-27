@@ -85,10 +85,14 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
           role: m.role,
           content: m.content,
         }));
+        const placedId = [...messages]
+          .reverse()
+          .find((m) => m.placedOrderId != null)?.placedOrderId;
         const res = await sendChat({
           message: trimmed,
           chat_history: history,
           session_id: getChatSessionId(),
+          order_placed_id: placedId,
         });
         setMessages((prev) => [
           ...prev,

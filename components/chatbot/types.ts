@@ -28,6 +28,9 @@ export interface ChatRequest {
   chat_history?: { role: ChatRole; content: string }[];
   /** Stable per-browser id — helps backend group tracing across turns. */
   session_id?: string;
+  /** Set after the frontend places an order, so the backend advances its order
+   *  state machine to ORDER_CONFIRMED. Read-only signal; backend never places. */
+  order_placed_id?: number;
 }
 
 export interface ChatResponse {
