@@ -17,6 +17,8 @@ export interface ChatMessage {
   /** Client-only: small data-URL thumbnail of an image the user sent for
    *  visual search. Display-only; not sent to any backend. */
   image?: string;
+  /** Structured card ids for this assistant message (backend-resolved). */
+  display_products?: number[];
 }
 
 export interface SourceRef {
@@ -27,6 +29,11 @@ export interface SourceRef {
 export interface ChatRequest {
   message: string;
   chat_history?: { role: ChatRole; content: string }[];
+  /** Stable per-browser id — helps backend group tracing across turns. */
+  session_id?: string;
+  /** Set after the frontend places an order, so the backend advances its order
+   *  state machine to ORDER_CONFIRMED. Read-only signal; backend never places. */
+  order_placed_id?: number;
 }
 
 export interface ChatResponse {
@@ -34,6 +41,11 @@ export interface ChatResponse {
   sources: SourceRef[];
   products?: string[];
   order_draft?: OrderDraft;
+  /** Structured ids to render as cards for THIS message (supersedes products/sources). */
+  display_products?: number[];
+  intent?: string | null;
+  categories?: string[];
+  conversation_state?: unknown;
 }
 
 /** One line of a RAG-prepared order draft. Mirrors the canonical contract

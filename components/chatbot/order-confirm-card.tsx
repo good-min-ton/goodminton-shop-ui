@@ -7,6 +7,7 @@ import { useMutation, useQueries } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { productsApi } from "@/lib/api/products";
 import { ordersApi } from "@/lib/api/orders";
+import { ApiException } from "@/lib/api";
 import { useAuthStore } from "@/store/auth-store";
 import { toast } from "@/store/toast-store";
 import { getErrorMessage } from "@/lib/error-messages";
@@ -64,6 +65,11 @@ export function OrderConfirmCard({
     if (p) thumbById.set(p.id, p.thumbnail?.url ?? null);
   }
 
+  const redirectToLogin = () => {
+    toast("Vui lòng đăng nhập để đặt hàng.", "info");
+    router.push(`/login?next=${encodeURIComponent(pathname || "/")}`);
+  };
+
   const placeOrder = useMutation({
     mutationFn: () =>
       ordersApi.create({
@@ -84,6 +90,13 @@ export function OrderConfirmCard({
       router.replace(`/orders/${order.id}`);
     },
     onError: (err) => {
+      // 401 typically means the token expired between form render and submit
+      // (or the user was logged out in another tab). Swap the raw error for
+      // the friendly login prompt required by BE-update.md §3.
+      if (err instanceof ApiException && err.status === 401) {
+        redirectToLogin();
+        return;
+      }
       setErrorMsg(getErrorMessage(err, "Đặt hàng thất bại"));
     },
   });
@@ -229,12 +242,18 @@ export function OrderConfirmCard({
           </button>
         </form>
       ) : (
-        <Link
-          href={`/login?next=${encodeURIComponent(pathname || "/")}`}
-          className="bg-primary-700 hover:bg-primary-800 block rounded-lg py-2 text-center text-sm font-medium text-white transition-colors"
-        >
-          Đăng nhập để đặt hàng
-        </Link>
+        <div className="space-y-1.5">
+          <p className="text-center text-xs text-stone-500">
+            Vui lòng đăng nhập để đặt hàng.
+          </p>
+          <button
+            type="button"
+            onClick={redirectToLogin}
+            className="bg-primary-700 hover:bg-primary-800 w-full rounded-lg py-2 text-sm font-medium text-white transition-colors"
+          >
+            Bấm xác nhận
+          </button>
+        </div>
       )}
     </div>
   );
