@@ -40,18 +40,6 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Restore from localStorage on first mount.
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as ChatMessage[];
-      if (Array.isArray(parsed)) setMessages(parsed);
-    } catch {
-      /* corrupted — ignore */
-    }
-  }, []);
-
   // Persist on every change.
   useEffect(() => {
     if (messages.length === 0) {
