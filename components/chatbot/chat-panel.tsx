@@ -10,7 +10,7 @@ import {
 import { Image as ImageIcon, Send, Sparkles, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useQueries } from "@tanstack/react-query";
-import { ChatApiError, sendChat } from "./api";
+import { ChatApiError, sendChat, sendChatStream } from "./api";
 import { OrderConfirmCard } from "./order-confirm-card";
 import { getChatSessionId } from "./session";
 import type { ChatMessage } from "./types";
@@ -23,6 +23,7 @@ import type { Product } from "@/types/api";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "gm.chat-history";
+const STREAM_ENABLED = process.env.NEXT_PUBLIC_CHAT_STREAM_ENABLED === "true";
 const HISTORY_LIMIT = 20;
 const SUGGESTIONS = [
   "Mình mới chơi, nên chọn vợt nào?",
@@ -38,6 +39,7 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [streamingTs, setStreamingTs] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -99,6 +101,71 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
         const placedId = [...messages]
           .reverse()
           .find((m) => m.placedOrderId != null)?.placedOrderId;
+
+        if (STREAM_ENABLED) {
+          const ts = Date.now();
+          let started = false;
+          await sendChatStream(
+            {
+              message: trimmed,
+              chat_history: history,
+              session_id: getChatSessionId(),
+              order_placed_id: placedId,
+            },
+            {
+              onToken: (delta) => {
+                if (!started) {
+                  started = true;
+                  setStreamingTs(ts);
+                  setMessages((prev) => [
+                    ...prev,
+                    { role: "assistant", content: delta, ts },
+                  ]);
+                } else {
+                  setMessages((prev) =>
+                    prev.map((m) =>
+                      m.ts === ts ? { ...m, content: m.content + delta } : m,
+                    ),
+                  );
+                }
+              },
+              onDone: (r) => {
+                setMessages((prev) => {
+                  if (!started) {
+                    started = true;
+                    return [
+                      ...prev,
+                      {
+                        role: "assistant",
+                        content: r.answer,
+                        sources: r.sources,
+                        products: r.products,
+                        order_draft: r.order_draft,
+                        display_products: r.display_products,
+                        ts,
+                      },
+                    ];
+                  }
+                  return prev.map((m) =>
+                    m.ts === ts
+                      ? {
+                          ...m,
+                          content: r.answer ?? m.content,
+                          sources: r.sources,
+                          products: r.products,
+                          order_draft: r.order_draft,
+                          display_products: r.display_products,
+                        }
+                      : m,
+                  );
+                });
+              },
+              onError: (msg) => setError(msg),
+            },
+          );
+          return;
+        }
+
         const res = await sendChat({
           message: trimmed,
           chat_history: history,
@@ -125,6 +192,7 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
         setError(msg);
       } finally {
         setLoading(false);
+        setStreamingTs(null);
       }
     },
     [loading, messages],
@@ -280,7 +348,7 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
             />
           ))
         )}
-        {loading && <LoadingBubble />}
+        {loading && streamingTs == null && <LoadingBubble />}
         {error && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
             {error}
