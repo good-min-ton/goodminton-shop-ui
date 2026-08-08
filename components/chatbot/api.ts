@@ -60,6 +60,9 @@ export interface ChatStreamHandlers {
     intent?: string | null;
     categories?: string[] | null;
   }) => void;
+  /** Progress signal emitted by the backend before each tool call — drives the
+   *  thinking indicator. `tool` is a RAG tool name (see TOOL_STAGE). */
+  onStatus?: (status: { tool?: string }) => void;
   onToken: (delta: string) => void;
   onDone: (payload: ChatResponse) => void;
   onError: (message: string) => void;
@@ -149,6 +152,7 @@ export async function sendChatStream(
         buffer = buffer.slice(sep + 2);
         const { event, data } = parseSseBlock(block);
         if (event === "meta") handlers.onMeta?.(data as never);
+        else if (event === "status") handlers.onStatus?.(data as never);
         else if (event === "token")
           handlers.onToken(String((data as { delta?: string })?.delta ?? ""));
         else if (event === "done") {

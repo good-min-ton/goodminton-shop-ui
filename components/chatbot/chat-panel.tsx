@@ -11,8 +11,14 @@ import { Image as ImageIcon, Send, Sparkles, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useQueries } from "@tanstack/react-query";
 import { ChatApiError, sendChat, sendChatStream } from "./api";
+import { MarkdownLite } from "./markdown-lite";
 import { OrderConfirmCard } from "./order-confirm-card";
 import { getChatSessionId } from "./session";
+import {
+  ThinkingBubble,
+  TOOL_STAGE,
+  type ThinkingStage,
+} from "./thinking-bubble";
 import type { ChatMessage } from "./types";
 import { productsApi } from "@/lib/api/products";
 import { searchApi } from "@/lib/api/search";
@@ -40,6 +46,9 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [streamingTs, setStreamingTs] = useState<number | null>(null);
+  /** Backend-driven thinking stage; null => ThinkingBubble uses its timed
+   *  fallback (non-streaming path has no progress signal to read). */
+  const [stage, setStage] = useState<ThinkingStage | null>(null);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -79,10 +88,15 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
       const trimmed = text.trim();
       if (!trimmed || loading) return;
 
+      // `ts` doubles as the React key and as the id the streaming updates key
+      // off, so the assistant's ts MUST differ from the user's. Two Date.now()
+      // calls in the same tick return the same millisecond, which collided:
+      // the answer overwrote the user's message and rendered in its bubble.
+      const userTs = Date.now();
       const userMsg: ChatMessage = {
         role: "user",
         content: trimmed,
-        ts: Date.now(),
+        ts: userTs,
       };
       const nextHistory = [...messages, userMsg];
       setMessages(nextHistory);
@@ -103,8 +117,9 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
           .find((m) => m.placedOrderId != null)?.placedOrderId;
 
         if (STREAM_ENABLED) {
-          const ts = Date.now();
+          const ts = userTs + 1;
           let started = false;
+          setStage("retrieving");
           await sendChatStream(
             {
               message: trimmed,
@@ -113,6 +128,11 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
               order_placed_id: placedId,
             },
             {
+              // meta lands once retrieval is done and the LLM turn is starting.
+              onMeta: () => setStage("thinking"),
+              // Unknown/absent tool names fall back to a generic label rather
+              // than rendering an undefined stage.
+              onStatus: (s) => setStage(TOOL_STAGE[s.tool ?? ""] ?? "thinking"),
               onToken: (delta) => {
                 if (!started) {
                   started = true;
@@ -130,35 +150,38 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
                 }
               },
               onDone: (r) => {
-                setMessages((prev) => {
-                  if (!started) {
-                    started = true;
-                    return [
-                      ...prev,
-                      {
-                        role: "assistant",
-                        content: r.answer,
-                        sources: r.sources,
-                        products: r.products,
-                        order_draft: r.order_draft,
-                        display_products: r.display_products,
-                        ts,
-                      },
-                    ];
-                  }
-                  return prev.map((m) =>
-                    m.ts === ts
-                      ? {
-                          ...m,
-                          content: r.answer ?? m.content,
+                // Decide the branch OUTSIDE the updater: React double-invokes
+                // updaters in dev StrictMode, so flipping `started` inside one
+                // made the second invocation take the other branch.
+                const isFirstEmit = !started;
+                started = true;
+                setMessages((prev) =>
+                  isFirstEmit
+                    ? [
+                        ...prev,
+                        {
+                          role: "assistant",
+                          content: r.answer,
                           sources: r.sources,
                           products: r.products,
                           order_draft: r.order_draft,
                           display_products: r.display_products,
-                        }
-                      : m,
-                  );
-                });
+                          ts,
+                        },
+                      ]
+                    : prev.map((m) =>
+                        m.ts === ts
+                          ? {
+                              ...m,
+                              content: r.answer ?? m.content,
+                              sources: r.sources,
+                              products: r.products,
+                              order_draft: r.order_draft,
+                              display_products: r.display_products,
+                            }
+                          : m,
+                      ),
+                );
               },
               onError: (msg) => setError(msg),
             },
@@ -181,7 +204,7 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
             products: res.products,
             order_draft: res.order_draft,
             display_products: res.display_products,
-            ts: Date.now(),
+            ts: Math.max(Date.now(), userTs + 1), // never collide with userMsg
           },
         ]);
       } catch (err) {
@@ -193,6 +216,7 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
       } finally {
         setLoading(false);
         setStreamingTs(null);
+        setStage(null);
       }
     },
     [loading, messages],
@@ -222,17 +246,19 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
       // Small display thumbnail for the user bubble (upload uses a separate,
       // larger downscale below). LLM is bypassed — this hits /search/image.
       const thumb = await makeThumbnailDataUrl(file).catch(() => undefined);
+      const userTs = Date.now();
       const userMsg: ChatMessage = {
         role: "user",
         content: caption.trim() || "Tìm sản phẩm bằng hình ảnh",
         image: thumb,
-        ts: Date.now(),
+        ts: userTs,
       };
       setMessages((prev) => [...prev, userMsg]);
       setInput("");
       setAttachedFile(null);
       setAttachedPreview(null);
       setLoading(true);
+      setStage("image");
       setError(null);
 
       try {
@@ -249,13 +275,14 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
                 ? "Đây là các sản phẩm giống ảnh của bạn"
                 : "Không tìm thấy sản phẩm giống ảnh.",
             display_products: ids.map(Number),
-            ts: Date.now(),
+            ts: Math.max(Date.now(), userTs + 1), // never collide with userMsg
           },
         ]);
       } catch {
         setError("Không tìm được sản phẩm từ ảnh. Thử lại nhé.");
       } finally {
         setLoading(false);
+        setStage(null);
       }
     },
     [loading],
@@ -348,7 +375,7 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
             />
           ))
         )}
-        {loading && streamingTs == null && <LoadingBubble />}
+        {loading && streamingTs == null && <ThinkingBubble stage={stage} />}
         {error && (
           <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
             {error}
@@ -437,7 +464,7 @@ function EmptyState({ onPick }: Readonly<{ onPick: (text: string) => void }>) {
   return (
     <div className="space-y-4">
       <div className="bg-primary-50 text-primary-900 rounded-xl p-4 text-sm leading-relaxed">
-        <p className="font-medium">👋 Chào bạn!</p>
+        <p className="font-medium">Chào bạn!</p>
         <p className="text-primary-800/90 mt-1">
           Mình là trợ lý ảo của Goodminton. Mình có thể giúp bạn:
         </p>
@@ -488,13 +515,14 @@ function MessageBubble({
       )}
       <div
         className={cn(
-          "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap",
+          "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
           isUser
-            ? "bg-primary-700 rounded-br-md text-white"
+            ? "bg-primary-700 rounded-br-md whitespace-pre-wrap text-white"
             : "rounded-bl-md border border-stone-200 bg-white text-stone-800 shadow-sm",
         )}
       >
-        {message.content}
+        {/* User text is literal; assistant text is Markdown from the LLM. */}
+        {isUser ? message.content : <MarkdownLite text={message.content} />}
       </div>
       {productIds.length > 0 && <ProductSourceCards ids={productIds} />}
       {!isUser && message.order_draft && (
@@ -561,25 +589,3 @@ function ProductSourceCards({ ids }: Readonly<{ ids: number[] }>) {
   );
 }
 
-function LoadingBubble() {
-  return (
-    <div className="flex justify-start">
-      <div className="rounded-2xl rounded-bl-md border border-stone-200 bg-white px-4 py-3 shadow-sm">
-        <span className="flex items-center gap-1">
-          <Dot delay="0ms" />
-          <Dot delay="150ms" />
-          <Dot delay="300ms" />
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function Dot({ delay }: Readonly<{ delay: string }>) {
-  return (
-    <span
-      className="bg-primary-500 inline-block h-1.5 w-1.5 animate-bounce rounded-full"
-      style={{ animationDelay: delay }}
-    />
-  );
-}
