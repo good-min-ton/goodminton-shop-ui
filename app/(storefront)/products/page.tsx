@@ -280,7 +280,7 @@ function ImageSearchResults({ onClear }: Readonly<{ onClear: () => void }>) {
       {status === "idle" && (
         <EmptyState
           title="Chưa có kết quả tìm bằng ảnh"
-          description="Dùng nút 📷 trên thanh tìm kiếm để tìm sản phẩm bằng hình ảnh."
+          description="Dùng nút hình ảnh trên thanh tìm kiếm để tìm sản phẩm bằng hình ảnh."
         />
       )}
       {status === "loading" && (

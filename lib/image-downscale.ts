@@ -1,5 +1,5 @@
 /** Client-side image downscale/recompress so uploads stay small (< ~2 MB).
- *  Shared by the storefront 📷 search and the chatbot image attach. */
+ *  Shared by the storefront image search and the chatbot image attach. */
 
 async function canvasToBlob(
   canvas: HTMLCanvasElement,
