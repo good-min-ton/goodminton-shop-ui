@@ -14,8 +14,7 @@ import { Sparkles } from "lucide-react";
 export type ThinkingStage =
   | "retrieving"
   | "thinking"
-  | "pricing"
-  | "inventory"
+  | "availability"
   | "similar"
   | "order"
   | "image"
@@ -24,18 +23,18 @@ export type ThinkingStage =
 const LABELS: Record<ThinkingStage, string> = {
   retrieving: "Đang tìm thông tin liên quan",
   thinking: "Đang suy nghĩ",
-  pricing: "Đang tra giá mới nhất",
-  inventory: "Đang kiểm tra tồn kho",
+  availability: "Đang tra giá và tồn kho",
   similar: "Đang tìm sản phẩm tương tự",
   order: "Đang chuẩn bị đơn hàng",
   image: "Đang tìm sản phẩm giống ảnh",
   writing: "Đang soạn câu trả lời",
 };
 
-/** RAG tool name -> stage. Keep in sync with TOOL_SCHEMAS in the rag-service. */
+/** RAG tool name -> stage. Keep in sync with TOOL_SCHEMAS in the rag-service.
+ *  A name missing here degrades to the generic "thinking" label, so a rename on
+ *  the backend costs a wrong-but-harmless label rather than a broken indicator. */
 export const TOOL_STAGE: Record<string, ThinkingStage> = {
-  get_pricing: "pricing",
-  check_inventory: "inventory",
+  get_product_availability: "availability",
   recommend_similar_products: "similar",
   prepare_order: "order",
 };
