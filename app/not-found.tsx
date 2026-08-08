@@ -17,7 +17,7 @@ export default function NotFound() {
         Trang không tồn tại
       </h1>
       <p className="mt-3 max-w-md text-stone-500">
-        Có vẻ trang bạn tìm đã không còn ở đây. Quả cầu đã bay đi hướng khác rồi 🏸
+        Có vẻ trang bạn tìm đã không còn ở đây. Quả cầu đã bay đi hướng khác rồi.
       </p>
       <Link href="/" className="mt-8 inline-block">
         <Button uppercase>Về trang chủ</Button>
