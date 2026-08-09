@@ -1,3 +1,4 @@
+import { TUNNEL_HEADERS } from "@/lib/tunnel-headers";
 import type { ChatRequest, ChatResponse } from "./types";
 
 const RAG_API_URL =
@@ -29,7 +30,7 @@ export async function sendChat(req: ChatRequest): Promise<ChatResponse> {
   try {
     res = await fetch(`${RAG_API_URL}/chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...TUNNEL_HEADERS },
       body: JSON.stringify(req),
       signal: controller.signal,
     });
@@ -121,7 +122,7 @@ export async function sendChatStream(
     resetIdle();
     res = await fetch(`${RAG_API_URL}/chat/stream`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...TUNNEL_HEADERS },
       body: JSON.stringify(req),
       signal: controller.signal,
     });
