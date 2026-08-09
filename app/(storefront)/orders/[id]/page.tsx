@@ -10,6 +10,7 @@ import {
   PaymentStatusBadge,
 } from "@/components/storefront/order/order-status-badge";
 import { OrderTimeline } from "@/components/storefront/order/order-timeline";
+import { TrackingCode } from "@/components/storefront/order/tracking-code";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
@@ -20,6 +21,14 @@ import {
   useMyOrder,
 } from "@/hooks/use-orders";
 import { formatVnd, formatDateTime, variantLabel } from "@/lib/utils";
+
+/** Raw enum names leak to the customer otherwise: "COD" means nothing to most. */
+const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  COD: "Thanh toán khi nhận hàng (COD)",
+  BANKING: "Chuyển khoản",
+  VNPAY: "VNPay",
+  PAYOS: "PayOS",
+};
 
 export default function OrderDetailPage() {
   return (
@@ -194,7 +203,7 @@ function OrderDetailContent() {
                   >
                     <div>
                       <span className="font-medium text-stone-900">
-                        {p.method}
+                        {PAYMENT_METHOD_LABEL[p.method] ?? p.method}
                       </span>
                       <span className="font-mono ml-2 text-xs text-stone-500">
                         {formatVnd(p.amount)}
@@ -205,7 +214,17 @@ function OrderDetailContent() {
                         </p>
                       )}
                     </div>
-                    <PaymentStatusBadge status={p.status} />
+                    <div className="flex flex-col items-end gap-0.5">
+                      <PaymentStatusBadge status={p.status} />
+                      {/* "Chưa thanh toán" on a COD order reads like something
+                          the customer forgot to do. It is not: the money is
+                          collected on delivery, and the payment settles then. */}
+                      {p.method === "COD" && p.status === "PENDING" && (
+                        <span className="text-[10px] text-stone-500">
+                          Thanh toán khi nhận hàng
+                        </span>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -234,15 +253,9 @@ function OrderDetailContent() {
               </div>
             </dl>
 
-            {order.shippingCode && (
-              <div className="mt-4 rounded-lg bg-blue-50 px-3 py-2 text-xs">
-                <span className="text-blue-700">Mã vận đơn: </span>
-                <span className="font-mono font-medium text-blue-900">
-                  {order.shippingCode}
-                </span>
-              </div>
-            )}
           </div>
+
+          {order.shippingCode && <TrackingCode code={order.shippingCode} />}
 
           {(canCancel || canConfirmReceived) && (
             <div className="space-y-2">
