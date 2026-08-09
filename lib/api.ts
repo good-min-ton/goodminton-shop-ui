@@ -13,6 +13,7 @@
 import type { ApiResponse, AuthTokens } from "@/types/api";
 import { getAccessToken, getRefreshToken, setTokens } from "./auth-storage";
 import { useAuthStore } from "@/store/auth-store";
+import { TUNNEL_HEADERS } from "./tunnel-headers";
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
@@ -42,9 +43,11 @@ async function performRefresh(): Promise<AuthTokens> {
   const refreshToken = getRefreshToken();
   if (!refreshToken) throw new ApiException("No refresh token", 1103);
 
+  // Does not go through buildHeaders (it must not attach the expired token),
+  // so the tunnel header is set explicitly here.
   const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...TUNNEL_HEADERS },
     body: JSON.stringify({ refreshToken }),
   });
   const json = (await res.json()) as ApiResponse<AuthTokens> | {
@@ -79,6 +82,9 @@ type Envelope<T> = ApiResponse<T> | { code?: number; message?: string } | null;
 
 function buildHeaders(init: RequestInitExtended): Headers {
   const headers = new Headers(init.headers);
+  for (const [name, value] of Object.entries(TUNNEL_HEADERS)) {
+    headers.set(name, value);
+  }
   if (!init.skipAuth) {
     const token = getAccessToken();
     if (token) headers.set("Authorization", `Bearer ${token}`);
