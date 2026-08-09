@@ -23,6 +23,11 @@ import { ApiException } from "./api";
 const ERROR_MESSAGE_OVERRIDES: Record<number, string> = {
   // Auto-redirect handled in api.ts — show this only if redirect couldn't happen.
   1005: "Vui lòng đăng nhập để tiếp tục",
+  // Backend wording is English ("Insufficient stock"). This one reaches shoppers
+  // mid-checkout, and it is a race rather than a mistake they made: stock is
+  // deducted atomically at placement, so someone else can take the last unit
+  // between seeing the card and confirming it.
+  2302: "Rất tiếc, sản phẩm vừa hết hàng. Bạn thử chọn lại size/màu khác nhé.",
 };
 
 const DEFAULT_MESSAGE = "Đã có lỗi xảy ra. Vui lòng thử lại.";
