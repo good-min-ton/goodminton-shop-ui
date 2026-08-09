@@ -14,6 +14,7 @@ import {
 import { useState } from "react";
 import { Logo } from "./logo";
 import { HeaderSearch } from "./header-search";
+import { NotificationBell } from "@/components/admin/notification-bell";
 import { CategoriesDropdown } from "./categories-dropdown";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
@@ -91,6 +92,16 @@ export function StorefrontHeader() {
 
         <div className="ml-auto flex items-center gap-1 md:ml-0">
           <HeaderSearch />
+
+          {/* Signed-in customers were being sent notifications - confirmed,
+              preparing, shipping, delivered, cancelled - with nowhere to read
+              them: the bell only existed in the two admin panels. */}
+          {isHydrated && user && (
+            <NotificationBell
+              variant="storefront"
+              orderHref={(id) => `/orders/${id}`}
+            />
+          )}
 
           <Link
             href="/wishlist"

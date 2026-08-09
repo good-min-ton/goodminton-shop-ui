@@ -24,9 +24,43 @@ import type { AppNotification } from "@/types/api";
  * /store-admin/orders, a super admin's under /admin/orders - so the route is
  * passed in rather than guessed.
  */
+/** Only the palette differs between the two panels. */
+const ADMIN_THEME = {
+  trigger: "text-admin-text-muted hover:bg-admin-surface-2 hover:text-admin-text",
+  panel: "border-admin-border bg-admin-surface",
+  border: "border-admin-border",
+  title: "text-admin-text",
+  muted: "text-admin-text-muted",
+  accent: "text-admin-primary",
+  row: "hover:bg-admin-surface-2",
+  unreadRow: "bg-admin-primary/5",
+  dot: "bg-admin-primary",
+};
+
+const STOREFRONT_THEME = {
+  trigger: "text-stone-700 hover:bg-stone-100 hover:text-stone-900",
+  panel: "border-stone-200 bg-white",
+  border: "border-stone-200",
+  title: "text-stone-800",
+  muted: "text-stone-500",
+  accent: "text-primary-700",
+  row: "hover:bg-stone-50",
+  unreadRow: "bg-primary-50",
+  dot: "bg-primary-600",
+};
+
 export function NotificationBell({
   orderHref,
-}: Readonly<{ orderHref: (orderId: number) => string }>) {
+  variant = "admin",
+}: Readonly<{
+  orderHref: (orderId: number) => string;
+  /** The admin panels are dark and the storefront is light, so the palette has
+   *  to switch. Everything else - polling, the stream, mark-as-read - is
+   *  identical, and a customer needs the bell for the same reason an admin
+   *  does. */
+  variant?: "admin" | "storefront";
+}>) {
+  const t = variant === "admin" ? ADMIN_THEME : STOREFRONT_THEME;
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -63,7 +97,10 @@ export function NotificationBell({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={unread > 0 ? `Thông báo (${unread} chưa đọc)` : "Thông báo"}
-        className="relative flex h-9 w-9 items-center justify-center rounded-lg text-admin-text-muted transition-colors hover:bg-admin-surface-2 hover:text-admin-text"
+        className={cn(
+          "relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
+          t.trigger,
+        )}
       >
         <Bell size={18} />
         {unread > 0 && (
@@ -74,14 +111,17 @@ export function NotificationBell({
       </button>
 
       {open && (
-        <div className="animate-scale-in absolute right-0 z-50 mt-2 w-80 origin-top-right overflow-hidden rounded-xl border border-admin-border bg-admin-surface shadow-xl">
-          <div className="flex items-center justify-between border-b border-admin-border px-3 py-2">
-            <p className="text-sm font-semibold text-admin-text">Thông báo</p>
+        <div className={cn(
+            "animate-scale-in absolute right-0 z-50 mt-2 w-80 origin-top-right overflow-hidden rounded-xl border shadow-xl",
+            t.panel,
+          )}>
+          <div className={cn("flex items-center justify-between border-b px-3 py-2", t.border)}>
+            <p className={cn("text-sm font-semibold", t.title)}>Thông báo</p>
             {unread > 0 && (
               <button
                 type="button"
                 onClick={() => markAllRead.mutate()}
-                className="flex items-center gap-1 text-[11px] text-admin-primary hover:underline"
+                className={cn("flex items-center gap-1 text-[11px] hover:underline", t.accent)}
               >
                 <CheckCheck size={12} />
                 Đánh dấu đã đọc
@@ -91,12 +131,12 @@ export function NotificationBell({
 
           <div className="max-h-96 overflow-y-auto">
             {isLoading && (
-              <p className="px-3 py-6 text-center text-xs text-admin-text-muted">
+              <p className={cn("px-3 py-6 text-center text-xs", t.muted)}>
                 Đang tải...
               </p>
             )}
             {!isLoading && items.length === 0 && (
-              <p className="px-3 py-6 text-center text-xs text-admin-text-muted">
+              <p className={cn("px-3 py-6 text-center text-xs", t.muted)}>
                 Chưa có thông báo nào
               </p>
             )}
@@ -106,17 +146,19 @@ export function NotificationBell({
                 type="button"
                 onClick={() => openOrder(n)}
                 className={cn(
-                  "block w-full border-b border-admin-border px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-admin-surface-2",
-                  !n.read && "bg-admin-primary/5",
+                  "block w-full border-b px-3 py-2.5 text-left transition-colors last:border-b-0",
+                  t.border,
+                  t.row,
+                  !n.read && t.unreadRow,
                 )}
               >
-                <p className="flex items-start gap-1.5 text-[13px] leading-snug text-admin-text">
+                <p className={cn("flex items-start gap-1.5 text-[13px] leading-snug", t.title)}>
                   {!n.read && (
-                    <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-admin-primary" />
+                    <span className={cn("mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full", t.dot)} />
                   )}
                   <span className={cn(n.read && "pl-3")}>{n.message}</span>
                 </p>
-                <p className="mt-0.5 pl-3 text-[11px] text-admin-text-muted">
+                <p className={cn("mt-0.5 pl-3 text-[11px]", t.muted)}>
                   {formatWhen(n.createdAt)}
                 </p>
               </button>
