@@ -52,6 +52,14 @@ async function openPicker(page: Page, selection: unknown = SELECTION) {
   const dialog = page.getByRole("dialog", { name: /Trợ lý Goodminton/i });
   await dialog.getByPlaceholder(/Hỏi gì đó/i).fill("mua vợt Astrox 99");
   await dialog.getByRole("button", { name: "Gửi" }).click();
+
+  // Fail loudly on a missing NEXT_PUBLIC_RAG_API_URL: the client refuses to call
+  // an empty base URL, so the route mock never fires and every assertion below
+  // times out on an absent picker instead of naming the real cause.
+  await expect(
+    dialog.getByText(/Chatbot chưa được cấu hình/i),
+    "RAG base URL is unset - see webServer.env in playwright.config.ts",
+  ).toBeHidden();
   await expect(dialog.getByText("Mời bạn chọn bên dưới nhé.")).toBeVisible();
   return dialog;
 }
