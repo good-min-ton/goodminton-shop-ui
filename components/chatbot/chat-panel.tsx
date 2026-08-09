@@ -13,13 +13,14 @@ import { useQueries } from "@tanstack/react-query";
 import { ChatApiError, sendChat, sendChatStream } from "./api";
 import { MarkdownLite } from "./markdown-lite";
 import { OrderConfirmCard } from "./order-confirm-card";
+import { VariantPickerCard } from "./variant-picker-card";
 import { getChatSessionId } from "./session";
 import {
   ThinkingBubble,
   TOOL_STAGE,
   type ThinkingStage,
 } from "./thinking-bubble";
-import type { ChatMessage } from "./types";
+import type { ChatMessage, OrderDraft } from "./types";
 import { productsApi } from "@/lib/api/products";
 import { searchApi } from "@/lib/api/search";
 import { downscaleImage, makeThumbnailDataUrl } from "@/lib/image-downscale";
@@ -43,6 +44,9 @@ interface ChatPanelProps {
 
 export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  /** False until the stored conversation has been read back, so the persist
+   *  effect cannot clear it with the initial empty state. */
+  const [hydrated, setHydrated] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [streamingTs, setStreamingTs] = useState<number | null>(null);
@@ -62,14 +66,32 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
     return () => URL.revokeObjectURL(attachedPreview);
   }, [attachedPreview]);
 
-  // Persist on every change.
+  // Restore the conversation. Nothing read this back before, so history never
+  // actually survived a reload: the panel mounted with an empty list and the
+  // persist effect below promptly deleted the stored copy. That also silently
+  // disarmed the placed-order guard, whose whole job is to stop a reloaded card
+  // from offering to place the same order twice.
   useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (Array.isArray(parsed) && parsed.length > 0) setMessages(parsed);
+    } catch {
+      localStorage.removeItem(STORAGE_KEY); // unparseable payload, start clean
+    }
+    setHydrated(true);
+  }, []);
+
+  // Persist on every change, but never before the restore above has run -
+  // otherwise the initial empty state wipes the history it is about to load.
+  useEffect(() => {
+    if (!hydrated) return;
     if (messages.length === 0) {
       localStorage.removeItem(STORAGE_KEY);
       return;
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-  }, [messages]);
+  }, [messages, hydrated]);
 
   // Auto-scroll to bottom whenever messages or loading state changes.
   useEffect(() => {
@@ -165,6 +187,7 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
                           sources: r.sources,
                           products: r.products,
                           order_draft: r.order_draft,
+                          order_selection: r.order_selection,
                           display_products: r.display_products,
                           ts,
                         },
@@ -177,6 +200,7 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
                               sources: r.sources,
                               products: r.products,
                               order_draft: r.order_draft,
+                              order_selection: r.order_selection,
                               display_products: r.display_products,
                             }
                           : m,
@@ -203,6 +227,7 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
             sources: res.sources,
             products: res.products,
             order_draft: res.order_draft,
+            order_selection: res.order_selection,
             display_products: res.display_products,
             ts: Math.max(Date.now(), userTs + 1), // never collide with userMsg
           },
@@ -292,6 +317,15 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
   // ts) exactly once. This re-persists to localStorage via the existing effect,
   // so a reload keeps the card locked to its "Đã đặt #id" state and the button
   // never re-arms. The `placedOrderId == null` check makes the write idempotent.
+  // The picker's result is stored on the message (and therefore in
+  // localStorage), so a reload resumes at the confirm step instead of dropping
+  // the customer back to the chips they already tapped through.
+  const markPicked = useCallback((ts: number, draft: OrderDraft) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.ts === ts ? { ...m, picked_draft: draft } : m)),
+    );
+  }, []);
+
   const markPlaced = useCallback((ts: number, orderId: number) => {
     setMessages((prev) =>
       prev.map((m) =>
@@ -371,6 +405,9 @@ export function ChatPanel({ onClose }: Readonly<ChatPanelProps>) {
               message={m}
               onPlaced={(orderId) => {
                 if (m.ts != null) markPlaced(m.ts, orderId);
+              }}
+              onPicked={(draft) => {
+                if (m.ts != null) markPicked(m.ts, draft);
               }}
             />
           ))
@@ -496,7 +533,12 @@ function EmptyState({ onPick }: Readonly<{ onPick: (text: string) => void }>) {
 function MessageBubble({
   message,
   onPlaced,
-}: Readonly<{ message: ChatMessage; onPlaced: (orderId: number) => void }>) {
+  onPicked,
+}: Readonly<{
+  message: ChatMessage;
+  onPlaced: (orderId: number) => void;
+  onPicked: (draft: OrderDraft) => void;
+}>) {
   const isUser = message.role === "user";
   const productIds = isUser
     ? []
@@ -525,9 +567,17 @@ function MessageBubble({
         {isUser ? message.content : <MarkdownLite text={message.content} />}
       </div>
       {productIds.length > 0 && <ProductSourceCards ids={productIds} />}
-      {!isUser && message.order_draft && (
+      {/* Picker first: once the customer commits, picked_draft takes over and
+          the confirm card renders in its place. */}
+      {!isUser && message.order_selection && !message.picked_draft && (
+        <VariantPickerCard
+          selection={message.order_selection}
+          onPicked={onPicked}
+        />
+      )}
+      {!isUser && (message.picked_draft ?? message.order_draft) && (
         <OrderConfirmCard
-          draft={message.order_draft}
+          draft={(message.picked_draft ?? message.order_draft)!}
           placedOrderId={message.placedOrderId}
           onPlaced={onPlaced}
         />

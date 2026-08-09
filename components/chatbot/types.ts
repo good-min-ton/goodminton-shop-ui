@@ -11,6 +11,12 @@ export interface ChatMessage {
   products?: string[];
   /** Priced order draft returned by RAG for this assistant turn. */
   order_draft?: OrderDraft;
+  /** Variant picker returned by RAG when the customer wants to buy but has not
+   *  chosen yet. Once they pick, the card builds a draft locally. */
+  order_selection?: OrderSelection;
+  /** Client-only: the draft the picker produced, so a reload restores the
+   *  confirm step instead of dropping the customer back to the chips. */
+  picked_draft?: OrderDraft;
   /** Client-only: set to the created order id after a successful placement.
    *  Persisted to localStorage → durable single-write guard across reloads. */
   placedOrderId?: number;
@@ -41,6 +47,7 @@ export interface ChatResponse {
   sources: SourceRef[];
   products?: string[];
   order_draft?: OrderDraft;
+  order_selection?: OrderSelection;
   /** Structured ids to render as cards for THIS message (supersedes products/sources). */
   display_products?: number[];
   intent?: string | null;
@@ -70,4 +77,33 @@ export interface OrderDraft {
   total: number;
   currency: string;
   warnings: string[];
+}
+
+/** Stock at a non-central store. Walk-in only: an online order is fulfilled
+ *  from the central store, so this can be mentioned but never ordered from. */
+export interface BranchStock {
+  store_id: number | null;
+  store_name: string | null;
+  quantity: number;
+}
+
+/** One orderable variant, already priced (sale price resolved backend-side). */
+export interface OrderOption {
+  variant_id: string;
+  size: string | null;
+  color: string | null;
+  unit_price: number;
+  /** Central-store quantity — the picker caps its stepper at this, so the
+   *  customer cannot assemble an order checkout would reject. */
+  orderable: number;
+  branches: BranchStock[];
+}
+
+/** Emitted by the RAG `start_order` tool when the customer wants to buy but has
+ *  not chosen a variant. The picker runs entirely in the UI: no LLM turns. */
+export interface OrderSelection {
+  product_id: string;
+  product_name: string;
+  currency: string;
+  options: OrderOption[];
 }
