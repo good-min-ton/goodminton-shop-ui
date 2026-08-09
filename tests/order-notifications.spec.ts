@@ -180,3 +180,37 @@ test("an order overdue in its status is flagged, not just dated", async ({ page 
   await expect(page.getByText("4 ngày")).toBeVisible();
   await expect(page.getByTitle(/Đã quá 12 giờ/)).toBeVisible();
 });
+
+test("a signed-in customer has a bell in the storefront header", async ({ page }) => {
+  // Customers were being sent notifications - confirmed, preparing, shipping,
+  // delivered, cancelled - with nowhere to read them: the bell only existed in
+  // the two admin panels, so the rows went into a void.
+  await page.addInitScript(() => {
+    localStorage.setItem("gm.accessToken", "test-token");
+    localStorage.setItem("gm.refreshToken", "test-refresh");
+    localStorage.setItem(
+      "gm.user",
+      JSON.stringify({
+        id: 9, fullName: "Khach Hang", email: "k@e.com", phone: "0900000009",
+        role: "CUSTOMER", status: "ACTIVE",
+      }),
+    );
+  });
+  await mockApi(page, { unread: 1 });
+
+  await page.goto("/");
+  const bell = page.getByRole("button", { name: /Thông báo/i });
+  await expect(bell).toBeVisible();
+  await expect(bell).toContainText("1");
+
+  await bell.click();
+  await expect(page.getByText("Đơn hàng #42 đang chờ xác nhận")).toBeVisible();
+});
+
+test("a guest sees no bell", async ({ page }) => {
+  // No account, no notifications to show - and the endpoint would 401 anyway.
+  await mockApi(page, { unread: 5 });
+
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: /Thông báo/i })).toBeHidden();
+});
