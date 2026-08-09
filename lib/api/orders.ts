@@ -65,6 +65,16 @@ export const ordersApi = {
     return api.get<Order>(`/api/orders/${orderId}`);
   },
 
+  /** Look up an order a customer is calling about: tracking code, recipient
+   *  phone or order number. All matched exactly - a fragment would return half
+   *  the day's dispatches. A STORE_ADMIN is scoped to their own store by the
+   *  backend. */
+  search(q: string, page = 1, size = 20) {
+    return api.get<PageResponse<Order>>(
+      `/api/orders/search?q=${encodeURIComponent(q)}&page=${page}&size=${size}`,
+    );
+  },
+
   confirm(orderId: number) {
     return api.post<Order>(`/api/orders/${orderId}/confirm`);
   },

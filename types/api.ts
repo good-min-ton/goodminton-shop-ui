@@ -223,8 +223,7 @@ export type OrderStatus =
   | "SHIPPING"
   | "DELIVERED"
   | "COMPLETED"
-  | "CANCELLED"
-  | "RETURN_REQUESTED";
+  | "CANCELLED";
 
 export type OrderType = "ONLINE" | "IN_STORE";
 
@@ -265,6 +264,9 @@ export interface Order {
   status: OrderStatus;
   totalAmount: number;
   shippingCode: string | null;
+  /** When the status last changed - lets a queue show how long an order has
+   *  been waiting, which is what makes a stuck order visible. */
+  statusChangedAt: string | null;
   recipientName: string;
   recipientPhone: string;
   recipientAddress: string;
@@ -348,4 +350,23 @@ export interface CartItem {
   unitPrice: number;
   salePrice: number | null;
   quantity: number;
+}
+
+export type NotificationType =
+  | "ORDER_AWAITING_CONFIRMATION"
+  | "ORDER_CONFIRMED"
+  | "ORDER_PREPARING"
+  | "ORDER_SHIPPING"
+  | "ORDER_DELIVERED"
+  | "ORDER_COMPLETED"
+  | "ORDER_CANCELLED";
+
+export interface AppNotification {
+  id: number;
+  orderId: number;
+  type: NotificationType;
+  /** Pre-rendered Vietnamese from the backend; no translation table here. */
+  message: string;
+  read: boolean;
+  createdAt: string;
 }

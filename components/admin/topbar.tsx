@@ -1,6 +1,7 @@
 "use client";
 
-import { Bell, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
+import { NotificationBell } from "./notification-bell";
 import { formatDate } from "@/lib/utils";
 import { useAdminShellStore } from "@/store/admin-shell-store";
 
@@ -27,12 +28,9 @@ export function AdminTopbar() {
       </div>
 
       <div className="flex items-center gap-2">
-        <button
-          className="text-admin-text-muted hover:bg-admin-surface hover:text-admin-text relative rounded-lg p-2"
-          aria-label="Thông báo"
-        >
-          <Bell size={18} />
-        </button>
+        {/* Was a decorative Bell that did nothing, which is worse than no bell:
+            it looks like notifications exist. */}
+        <NotificationBell orderHref={(id) => `/admin/orders/${id}`} />
       </div>
     </header>
   );

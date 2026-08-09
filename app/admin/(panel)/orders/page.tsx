@@ -7,6 +7,8 @@ import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/admin/data-table";
 import { Pagination } from "@/components/storefront/pagination";
 import { OrderStatusBadge } from "@/components/storefront/order/order-status-badge";
+import { OrderSearch } from "@/components/admin/order-search";
+import { WaitingSince } from "@/components/admin/waiting-since";
 import { ordersApi } from "@/lib/api/orders";
 import { formatVnd, formatDateTime } from "@/lib/utils";
 import type { Order, OrderStatus, OrderType } from "@/types/api";
@@ -15,18 +17,23 @@ export default function AdminOrdersPage() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<OrderStatus | "">("");
   const [type, setType] = useState<OrderType | "">("");
+  // A search replaces the filtered list rather than narrowing it: a customer
+  // calling about one order does not care what the filters happen to be set to.
+  const [query, setQuery] = useState("");
 
   const list = useQuery({
-    queryKey: ["orders", "all", { page, status, type }],
+    queryKey: ["orders", "all", { page, status, type, query }],
     queryFn: () =>
-      ordersApi.list({
-        page,
-        size: 20,
-        sortBy: "orderDate",
-        sortDir: "desc",
-        status: status || undefined,
-        type: type || undefined,
-      }),
+      query
+        ? ordersApi.search(query, page, 20)
+        : ordersApi.list({
+            page,
+            size: 20,
+            sortBy: "orderDate",
+            sortDir: "desc",
+            status: status || undefined,
+            type: type || undefined,
+          }),
     refetchOnMount: "always",
   });
 
@@ -38,6 +45,18 @@ export default function AdminOrdersPage() {
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
+        <OrderSearch
+          active={!!query}
+          onSearch={(q) => {
+            setQuery(q);
+            setPage(1);
+          }}
+          onClear={() => {
+            setQuery("");
+            setPage(1);
+          }}
+        />
+
         <div className="flex items-center gap-2">
           <span className="text-admin-text-muted text-xs">Trạng thái:</span>
           <select
@@ -56,7 +75,6 @@ export default function AdminOrdersPage() {
             <option value="DELIVERED">Đã giao</option>
             <option value="COMPLETED">Hoàn thành</option>
             <option value="CANCELLED">Đã huỷ</option>
-            <option value="RETURN_REQUESTED">Yêu cầu hoàn</option>
           </select>
         </div>
 
@@ -91,6 +109,13 @@ export default function AdminOrdersPage() {
                   {r.recipientPhone}
                 </div>
               </div>
+            ),
+          },
+          {
+            key: "waiting",
+            header: "Chờ",
+            render: (r: Order) => (
+              <WaitingSince status={r.status} since={r.statusChangedAt} />
             ),
           },
           {
