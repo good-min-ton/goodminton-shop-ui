@@ -7,6 +7,8 @@ import { AdminPageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/admin/data-table";
 import { Pagination } from "@/components/storefront/pagination";
 import { OrderStatusBadge } from "@/components/storefront/order/order-status-badge";
+import { OrderSearch } from "@/components/admin/order-search";
+import { WaitingSince } from "@/components/admin/waiting-since";
 import { ordersApi } from "@/lib/api/orders";
 import { formatVnd, formatDateTime } from "@/lib/utils";
 import type { Order, OrderStatus } from "@/types/api";
@@ -14,20 +16,25 @@ import type { Order, OrderStatus } from "@/types/api";
 export default function StoreAdminOrdersPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "">("");
+  const [query, setQuery] = useState("");
 
   const list = useQuery({
-    queryKey: ["store-orders", "list", page],
+    queryKey: ["store-orders", "list", page, query],
     queryFn: () =>
-      ordersApi.storeOrders({
-        page,
-        size: 20,
-        sortBy: "orderDate",
-        sortDir: "desc",
-      }),
+      query
+        ? ordersApi.search(query, page, 20)
+        : ordersApi.storeOrders({
+            page,
+            size: 20,
+            sortBy: "orderDate",
+            sortDir: "desc",
+          }),
   });
 
+  // The status filter narrows the current page client-side; a search already
+  // asked the backend for one specific order, so it is not narrowed further.
   const filtered = (list.data?.content ?? []).filter((o) => {
-    if (!statusFilter) return true;
+    if (query || !statusFilter) return true;
     return o.status === statusFilter;
   });
 
@@ -37,6 +44,20 @@ export default function StoreAdminOrdersPage() {
         title="Đơn hàng"
         description="Đơn được assign về cửa hàng của bạn để fulfill."
       />
+
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <OrderSearch
+          active={!!query}
+          onSearch={(q) => {
+            setQuery(q);
+            setPage(1);
+          }}
+          onClear={() => {
+            setQuery("");
+            setPage(1);
+          }}
+        />
+      </div>
 
       <div className="mb-4 flex items-center gap-2">
         <span className="text-admin-text-muted text-xs">Lọc trạng thái:</span>
@@ -101,7 +122,14 @@ export default function StoreAdminOrdersPage() {
           {
             key: "status",
             header: "Trạng thái",
-            render: (r: Order) => <OrderStatusBadge status={r.status} />,
+            render: (r: Order) => (
+              <div className="flex flex-col gap-0.5">
+                <OrderStatusBadge status={r.status} />
+                {/* How long it has waited here, so an aging row looks different
+                    from one that arrived an hour ago. */}
+                <WaitingSince status={r.status} since={r.statusChangedAt} />
+              </div>
+            ),
           },
           {
             key: "date",

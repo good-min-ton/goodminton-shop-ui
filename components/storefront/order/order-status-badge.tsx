@@ -20,10 +20,6 @@ const ORDER_STATUS: Record<OrderStatus, StatusConfig> = {
     className: "bg-emerald-100 text-emerald-800",
   },
   CANCELLED: { label: "Đã huỷ", className: "bg-red-50 text-red-700" },
-  RETURN_REQUESTED: {
-    label: "Yêu cầu hoàn",
-    className: "bg-orange-50 text-orange-700",
-  },
 };
 
 const PAYMENT_STATUS: Record<PaymentStatus, StatusConfig> = {

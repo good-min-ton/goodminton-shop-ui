@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu } from "lucide-react";
+import { NotificationBell } from "@/components/admin/notification-bell";
 import { formatDate } from "@/lib/utils";
 import { useAdminShellStore } from "@/store/admin-shell-store";
 
@@ -27,6 +28,13 @@ export function StoreAdminTopbar() {
             {formatDate(new Date())}
           </p>
         </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        {/* The store admin is the middle of the chain: they get told when an
+            order is confirmed and needs preparing, which is the handoff most
+            likely to sit unnoticed. */}
+        <NotificationBell orderHref={(id) => `/store-admin/orders/${id}`} />
       </div>
     </header>
   );
