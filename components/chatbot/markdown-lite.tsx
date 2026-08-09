@@ -147,6 +147,24 @@ function renderInline(text: string): ReactNode[] {
       if (end === text.length) break;
     }
 
+    // ![alt](url) -> nothing. The model has no images to offer: product cards
+    // and the order picker are rendered by the app, so any image markup is
+    // invented. The alt text goes too - "Bảng chọn sản phẩm" as prose would sit
+    // directly above the real picker as a stray caption.
+    //
+    // Handled before the link branch below, which would otherwise consume the
+    // `[alt](url)` and leave the `!` behind as literal text.
+    if (ch === "!" && text[i + 1] === "[") {
+      const m = /^!\[[^\]]*\]\([^)]*\)/.exec(text.slice(i));
+      if (m) {
+        i += m[0].length;
+        continue;
+      }
+      // Still arriving: drop the rest rather than flash `![Bảng cho` mid-stream.
+      // Same tolerance the bold and code branches apply to their own markers.
+      break;
+    }
+
     // [label](url) -> label. The system prompt forbids links; if one slips
     // through, the label alone still reads correctly.
     if (ch === "[") {
