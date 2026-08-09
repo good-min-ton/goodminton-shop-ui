@@ -248,8 +248,6 @@ export interface Payment {
   method: PaymentMethod;
   status: PaymentStatus;
   amount: number;
-  vnpayTxnRef: string | null;
-  vnpayTransactionNo: string | null;
   paidAt: string | null;
   createdAt: string;
 }
