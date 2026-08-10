@@ -26,7 +26,6 @@ import { formatVnd, formatDateTime, variantLabel } from "@/lib/utils";
 const PAYMENT_METHOD_LABEL: Record<string, string> = {
   COD: "Thanh toán khi nhận hàng (COD)",
   BANKING: "Chuyển khoản",
-  VNPAY: "VNPay",
   PAYOS: "PayOS",
 };
 
@@ -208,11 +207,6 @@ function OrderDetailContent() {
                       <span className="font-mono ml-2 text-xs text-stone-500">
                         {formatVnd(p.amount)}
                       </span>
-                      {p.vnpayTxnRef && (
-                        <p className="font-mono mt-0.5 text-xs text-stone-400">
-                          Ref: {p.vnpayTxnRef}
-                        </p>
-                      )}
                     </div>
                     <div className="flex flex-col items-end gap-0.5">
                       <PaymentStatusBadge status={p.status} />
