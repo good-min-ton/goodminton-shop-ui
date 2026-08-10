@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/storefront/logo";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { RedirectIfAuthed } from "@/components/auth/redirect-if-authed";
 import { useAdminLogin } from "@/hooks/use-auth";
 import { loginSchema, type LoginInput } from "@/lib/validation/auth";
@@ -59,40 +60,31 @@ function AdminLoginContent() {
             onSubmit={handleSubmit((v) => login.mutate(v))}
             className="space-y-4"
           >
-            <div className="flex flex-col gap-1.5">
-              <label className="text-admin-text-muted text-sm font-medium">
-                Email hoặc số điện thoại{" "}
-                <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                autoComplete="username"
-                className="border-admin-border bg-admin-bg text-admin-text placeholder:text-admin-text-muted focus:border-primary-400 w-full rounded-lg border px-3.5 py-2.5 text-[15px] outline-none transition-colors"
-                {...register("identifier")}
-              />
-              {errors.identifier && (
-                <span className="text-[13px] text-red-400">
-                  {errors.identifier.message}
-                </span>
-              )}
-            </div>
+            {/* Dùng Input chung thay vì input thô: nút hiện/ẩn mật khẩu nằm
+                trong đó, và nhãn được nối với ô qua htmlFor - trước đây nhãn
+                không có htmlFor nên bấm vào chữ không focus được vào ô. Giữ
+                bg-admin-bg để nền không đổi so với thiết kế cũ. */}
+            <Input
+              label="Email hoặc số điện thoại"
+              required
+              type="text"
+              autoComplete="username"
+              admin
+              className="bg-admin-bg"
+              error={errors.identifier?.message}
+              {...register("identifier")}
+            />
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-admin-text-muted text-sm font-medium">
-                Mật khẩu <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="password"
-                autoComplete="current-password"
-                className="border-admin-border bg-admin-bg text-admin-text placeholder:text-admin-text-muted focus:border-primary-400 w-full rounded-lg border px-3.5 py-2.5 text-[15px] outline-none transition-colors"
-                {...register("password")}
-              />
-              {errors.password && (
-                <span className="text-[13px] text-red-400">
-                  {errors.password.message}
-                </span>
-              )}
-            </div>
+            <Input
+              label="Mật khẩu"
+              required
+              type="password"
+              autoComplete="current-password"
+              admin
+              className="bg-admin-bg"
+              error={errors.password?.message}
+              {...register("password")}
+            />
 
             <Button
               type="submit"

@@ -13,7 +13,10 @@ test('customer login remains on the login page for invalid credentials', async (
   await page.goto('/login');
 
   await page.getByLabel(/Email hoặc số điện thoại/i).fill('hoangphilong1208@gmail.com');
-  await page.getByLabel(/Mật khẩu/i).fill('Long@12082004');
+  // Neo ^ là cần thiết: ô mật khẩu giờ có nút hiện/ẩn đi kèm, tên khả truy cập
+  // của nút là "Hiện mật khẩu" nên /Mật khẩu/i khớp cả hai và Playwright báo lỗi
+  // strict mode. Nhãn của ô bắt đầu bằng "Mật khẩu", nhãn của nút thì không.
+  await page.getByLabel(/^Mật khẩu/).fill('Long@12082004');
   await page.getByRole('button', { name: /Đăng nhập/i }).click();
 
   await expect(page).toHaveURL(/\/login/);
