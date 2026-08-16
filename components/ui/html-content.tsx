@@ -3,13 +3,12 @@
 import { useMemo } from "react";
 import DOMPurify from "isomorphic-dompurify";
 import { cn } from "@/lib/utils";
+import { isAllowedEmbedSrc } from "@/lib/embed";
 
 interface HtmlContentProps {
   html: string;
   className?: string;
 }
-
-const ALLOWED_IFRAME_HOSTS = /^(?:.*\.)?(?:youtube(?:-nocookie)?\.com|youtu\.be|player\.vimeo\.com)$/i;
 
 let hookAttached = false;
 function ensureIframeHook() {
@@ -18,13 +17,9 @@ function ensureIframeHook() {
   DOMPurify.addHook("uponSanitizeElement", (node, data) => {
     if (data.tagName !== "iframe") return;
     const el = node as Element;
-    const src = el.getAttribute("src") ?? "";
-    try {
-      const host = new URL(src).hostname;
-      if (!ALLOWED_IFRAME_HOSTS.test(host)) {
-        el.remove();
-      }
-    } catch {
+    // Cùng một danh sách host với node iframe của trình soạn thảo, để hai bên
+    // không thể lệch nhau — xem lib/embed.ts.
+    if (!isAllowedEmbedSrc(el.getAttribute("src"))) {
       el.remove();
     }
   });
