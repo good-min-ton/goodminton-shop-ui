@@ -471,6 +471,17 @@ body {
   height: 0;
 }
 
+/* Video nhúng trong trình soạn thảo: chặn chuột để bấm vào là chọn khối (rồi
+   xoá / kéo được), thay vì rơi vào trình phát YouTube và không thao tác nổi.
+   Chỉ áp trong `.tiptap`; ngoài storefront khách vẫn xem video bình thường. */
+.tiptap iframe {
+  pointer-events: none;
+}
+.tiptap iframe.ProseMirror-selectednode {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+}
+
 
 /* Apply tabular figures wherever `font-mono` was used (price, SKU, ids, dates).
    Same family as body (Geist) — only digit spacing changes for column alignment. */

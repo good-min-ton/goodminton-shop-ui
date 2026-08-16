@@ -4,7 +4,9 @@ import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import ImageExt from "@tiptap/extension-image";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { Iframe } from "@/components/ui/tiptap-iframe";
+import { EMBED_IFRAME_ALLOW, toEmbedUrl } from "@/lib/embed";
 import {
   Bold,
   Italic,
@@ -57,6 +59,7 @@ export function RichTextEditor({
         inline: false,
         allowBase64: false,
       }),
+      Iframe,
     ],
     content: value || "",
     editorProps: {
@@ -74,13 +77,31 @@ export function RichTextEditor({
     immediatelyRender: false,
   });
 
-  // Sync external value resets (e.g. form.reset).
+  // Giữ trong ref để hiệu ứng đồng bộ bên dưới không phải phụ thuộc vào onChange.
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  // Sync external value resets (e.g. form.reset, hoặc nút "Tạo mô tả tự động").
   useEffect(() => {
     if (!editor) return;
     const current = editor.getHTML();
     const next = value || "";
     if (current === next || (current === "<p></p>" && next === "")) return;
+
     editor.commands.setContent(next, { emitUpdate: false });
+
+    // setContent chuẩn hoá nội dung theo schema: thẻ nào TipTap không biết thì
+    // bị bỏ hoặc làm phẳng. Với emitUpdate: false thì onUpdate không chạy, nên
+    // trước đây form vẫn giữ chuỗi gốc trong khi editor hiển thị bản đã chuẩn
+    // hoá — bấm Lưu ngay là ghi xuống thứ admin chưa từng nhìn thấy. Ví dụ mô
+    // tả tự động chứa <table>: editor làm phẳng thành một dòng chữ dính liền,
+    // còn DOMPurify ở storefront lại cho bảng đi qua, nên khách nhận đúng bảng.
+    // Đẩy bản chuẩn hoá ngược về form, và chỉ khi nó thật sự khác, để nội dung
+    // bình thường không bị đánh dấu là đã chỉnh sửa.
+    const normalized = editor.getHTML();
+    if (normalized !== next) {
+      onChangeRef.current(normalized === "<p></p>" ? "" : normalized);
+    }
   }, [value, editor]);
 
   if (!editor) return null;
@@ -349,33 +370,27 @@ function insertImage(editor: Editor) {
   editor.chain().focus().setImage({ src: url }).run();
 }
 
-const YT_RE =
-  /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{6,})/i;
-const VIMEO_RE = /vimeo\.com\/(?:video\/)?(\d+)/i;
-
 function insertVideo(editor: Editor) {
   const raw = globalThis.prompt("Dán URL video YouTube hoặc Vimeo:", "");
   if (!raw) return;
-  const url = raw.trim();
 
-  let embed: string | null = null;
-  const yt = YT_RE.exec(url);
-  if (yt) {
-    embed = `https://www.youtube.com/embed/${yt[1]}`;
-  } else {
-    const vm = VIMEO_RE.exec(url);
-    if (vm) embed = `https://player.vimeo.com/video/${vm[1]}`;
-  }
+  const embed = toEmbedUrl(raw);
   if (!embed) {
     globalThis.alert("URL không nhận diện được. Hỗ trợ YouTube và Vimeo.");
     return;
   }
 
+  // Chèn thẳng node thay vì một chuỗi HTML: node `iframe` giờ đã có trong
+  // schema nên nội dung được giữ lại thật sự.
   editor
     .chain()
     .focus()
-    .insertContent(
-      `<iframe src="${embed}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><p></p>`,
-    )
+    .insertContent([
+      {
+        type: "iframe",
+        attrs: { src: embed, allow: EMBED_IFRAME_ALLOW, allowfullscreen: true },
+      },
+      { type: "paragraph" },
+    ])
     .run();
 }
