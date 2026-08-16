@@ -43,7 +43,7 @@ export function OrderConfirmCard({
   useEffect(() => {
     if (user) {
       setRecipientName((v) => v || user.fullName);
-      setRecipientPhone((v) => v || user.phone);
+      setRecipientPhone((v) => v || user.phone || "");
     }
   }, [user]);
 

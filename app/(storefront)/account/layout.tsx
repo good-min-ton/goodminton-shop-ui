@@ -10,7 +10,15 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/account", label: "Hồ sơ", icon: User },
-  { href: "/account/change-password", label: "Đổi mật khẩu", icon: Lock },
+  {
+    href: "/account/change-password",
+    label: "Đổi mật khẩu",
+    icon: Lock,
+    // Tài khoản đăng nhập bằng Google không có mật khẩu nào để đổi: trang đó chỉ
+    // trả về lỗi. Điều kiện là `hasPassword` chứ không phải provider, vì người
+    // dùng Google vẫn đặt được mật khẩu qua "quên mật khẩu".
+    needsPassword: true,
+  },
   { href: "/orders", label: "Đơn hàng của tôi", icon: Package },
 ];
 
@@ -48,7 +56,9 @@ function AccountShell({
           </div>
 
           <nav className="mt-4 space-y-1">
-            {NAV.map((item) => {
+            {NAV.filter(
+              (item) => !item.needsPassword || user?.hasPassword !== false,
+            ).map((item) => {
               const Icon = item.icon;
               const active = pathname === item.href;
               return (

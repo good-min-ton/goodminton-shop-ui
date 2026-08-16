@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RedirectIfAuthed } from "@/components/auth/redirect-if-authed";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { useRegister } from "@/hooks/use-auth";
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
 
@@ -97,6 +98,8 @@ function RegisterContent() {
           Tạo tài khoản
         </Button>
       </form>
+
+      <GoogleSignInButton text="signup_with" />
 
       <p className="mt-6 text-center text-sm text-stone-500">
         <span>Đã có tài khoản?</span>{" "}

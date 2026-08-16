@@ -113,7 +113,7 @@ export default function AdminAccountDetailPage() {
             <Row label="Họ tên">{a.fullName}</Row>
             <Row label="Email">{a.email}</Row>
             <Row label="Số điện thoại">
-              <span className="font-mono">{a.phone}</span>
+              <span className="font-mono">{a.phone ?? "— chưa có —"}</span>
             </Row>
           </dl>
         </AdminCard>

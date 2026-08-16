@@ -126,7 +126,7 @@ export default function AdminAccountsPage() {
             header: "Điện thoại",
             render: (r: Account) => (
               <span className="font-mono text-admin-text-muted text-xs">
-                {r.phone}
+                {r.phone ?? "—"}
               </span>
             ),
           },
