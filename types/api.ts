@@ -53,14 +53,25 @@ export interface AuthTokens {
   refreshToken: string;
 }
 
+export type AuthProvider = "LOCAL" | "GOOGLE";
+
 export interface Account {
   id: number;
   fullName: string;
   email: string;
-  phone: string;
+  /** Null cho tài khoản đăng nhập bằng Google — Google không cấp số điện thoại. */
+  phone: string | null;
   role: Role;
   status: AccountStatus;
   createdAt: string;
+  provider: AuthProvider;
+  avatarUrl?: string | null;
+  /**
+   * Có mật khẩu hay không — khác câu hỏi `provider === "LOCAL"`: người đăng ký
+   * bằng Google vẫn có thể đặt mật khẩu qua "quên mật khẩu" mà vẫn là tài khoản
+   * GOOGLE.
+   */
+  hasPassword: boolean;
 }
 
 export interface RegisterRequest {

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { RedirectIfAuthed } from "@/components/auth/redirect-if-authed";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { useLogin } from "@/hooks/use-auth";
 import { loginSchema, type LoginInput } from "@/lib/validation/auth";
 
@@ -63,6 +64,10 @@ function LoginForm() {
       >
         Đăng nhập
       </Button>
+
+      {/* Trong form để dùng chung tham số ?next=, nhưng bản thân nút không submit
+          form: Google dựng nút trong iframe riêng của nó. */}
+      <GoogleSignInButton redirectTo={next} text="signin_with" />
     </form>
   );
 }

@@ -29,7 +29,7 @@ export default function AccountProfilePage() {
   });
 
   useEffect(() => {
-    if (me.data) reset({ fullName: me.data.fullName, phone: me.data.phone });
+    if (me.data) reset({ fullName: me.data.fullName, phone: me.data.phone ?? "" });
   }, [me.data, reset]);
 
   const update = useMutation({
@@ -37,7 +37,7 @@ export default function AccountProfilePage() {
     onSuccess: (updated) => {
       setUser(updated);
       qc.setQueryData(["accounts", "me"], updated);
-      reset({ fullName: updated.fullName, phone: updated.phone });
+      reset({ fullName: updated.fullName, phone: updated.phone ?? "" });
       toast("Đã cập nhật hồ sơ", "success");
     },
     onError: (err) => {

@@ -91,7 +91,7 @@ function CheckoutContent() {
     }
     if (user) {
       setValue("recipientName", user.fullName);
-      setValue("recipientPhone", user.phone);
+      setValue("recipientPhone", user.phone ?? "");
       setValue("recipientEmail", user.email);
     }
   }, [savedAddress, user, setValue]);
@@ -185,7 +185,7 @@ function CheckoutContent() {
                   onReset={() => {
                     if (user) {
                       setValue("recipientName", user.fullName);
-                      setValue("recipientPhone", user.phone);
+                      setValue("recipientPhone", user.phone ?? "");
                       setValue("recipientEmail", user.email);
                     } else {
                       setValue("recipientName", "");

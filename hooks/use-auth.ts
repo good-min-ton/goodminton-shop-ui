@@ -71,6 +71,37 @@ export function useLogin() {
   });
 }
 
+/**
+ * Đăng nhập bằng ID token do Google Identity Services trả về.
+ *
+ * Không kiểm vai trò như `useLogin`: backend đã từ chối sẵn tài khoản nhân viên
+ * ở endpoint này, và tài khoản tạo mới qua Google luôn là CUSTOMER. Kiểm thêm ở
+ * đây chỉ nhân đôi một luật đã có chỗ ở đúng của nó.
+ */
+export function useGoogleLogin() {
+  const setSession = useAuthStore((s) => s.setSession);
+  const router = useRouter();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: { credential: string; redirectTo?: string }) => {
+      const tokens = await authApi.loginWithGoogle(input.credential);
+      setSession(tokens);
+      const me = await accountsApi.myInfo();
+      setSession(tokens, me);
+      return { me, redirectTo: input.redirectTo };
+    },
+    onSuccess: ({ me, redirectTo }) => {
+      qc.setQueryData(QK_ME, me);
+      router.replace(redirectTo || defaultRedirectFor(me.role));
+      toast(`Chào mừng, ${me.fullName}!`, "success");
+    },
+    onError: (err) => {
+      toast(getErrorMessage(err, "Đăng nhập Google thất bại"), "error");
+    },
+  });
+}
+
 export function useRegister() {
   const setSession = useAuthStore((s) => s.setSession);
   const router = useRouter();

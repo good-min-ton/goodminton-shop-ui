@@ -15,6 +15,21 @@ export const authApi = {
     return api.post<AuthTokens>("/api/auth/login", body, { skipAuth: true });
   },
 
+  /**
+   * Đổi ID token của Google lấy token của chính hệ thống.
+   *
+   * Trình duyệt nhận ID token thẳng từ Google nên không có redirect URI nào dính
+   * tới API — điều đó quan trọng ở đây vì API đi qua tunnel có tên miền thay đổi.
+   * Google chỉ cần biết origin của frontend.
+   */
+  loginWithGoogle(credential: string) {
+    return api.post<AuthTokens>(
+      "/api/auth/google",
+      { credential },
+      { skipAuth: true },
+    );
+  },
+
   refresh(refreshToken: string) {
     return api.post<AuthTokens>(
       "/api/auth/refresh",
