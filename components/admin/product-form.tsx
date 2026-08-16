@@ -20,7 +20,11 @@ import {
   useSizes,
 } from "@/hooks/use-catalog";
 import { slugify } from "@/lib/utils";
-import { productSchema, type ProductFormInput } from "@/lib/validation/product";
+import {
+  numberFromInput,
+  productSchema,
+  type ProductFormInput,
+} from "@/lib/validation/product";
 import { generateProductDescription } from "@/lib/api/rag";
 import { toast } from "@/store/toast-store";
 
@@ -426,7 +430,7 @@ export function ProductForm({
                 error={errors.variants?.[idx]?.salePrice?.message}
                 containerClassName="col-span-2"
                 {...form.register(`variants.${idx}.salePrice`, {
-                  setValueAs: (v) => (v === "" ? null : Number(v)),
+                  setValueAs: numberFromInput,
                 })}
               />
               <button
