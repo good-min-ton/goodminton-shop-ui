@@ -17,7 +17,10 @@ export const productVariantSchema = z.object({
   sizeId: z.number().int().nonnegative().optional(),
   skuCode: z.string().min(2, "SKU tối thiểu 2 ký tự").max(60),
   price: z.number().int().positive("Giá phải > 0"),
-  salePrice: z.number().int().nonnegative().nullable().optional(),
+  // positive chứ không phải nonnegative: backend đánh @Positive lên salePrice,
+  // nên số 0 bị trả 400. Để zod cho qua thì admin mất cả biểu mẫu mới biết -
+  // mà giá sale 0đ cũng chỉ có thể là gõ nhầm.
+  salePrice: z.number().int().positive("Giá sale phải > 0").nullable().optional(),
 });
 
 /**
