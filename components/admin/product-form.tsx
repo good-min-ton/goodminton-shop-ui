@@ -401,7 +401,7 @@ export function ProductForm({
                 admin
                 placeholder="ASTROX-88D-RED-4U"
                 error={errors.variants?.[idx]?.skuCode?.message}
-                containerClassName="col-span-3"
+                containerClassName="col-span-2"
                 {...form.register(`variants.${idx}.skuCode`)}
               />
               <Input
@@ -414,12 +414,17 @@ export function ProductForm({
                   valueAsNumber: true,
                 })}
               />
+              {/* Cùng bề rộng với giá gốc: trước đây ô này chỉ chiếm 1/12, quá
+                  hẹp cho một số tiền bảy chữ số. Và nó thiếu hẳn `error`, nên
+                  quy tắc "giá sale phải thấp hơn giá gốc" có báo lỗi cũng không
+                  hiện ra chỗ nào. */}
               <Input
                 label="Giá sale"
                 admin
                 type="number"
                 hint="Bỏ trống nếu không"
-                containerClassName="col-span-1"
+                error={errors.variants?.[idx]?.salePrice?.message}
+                containerClassName="col-span-2"
                 {...form.register(`variants.${idx}.salePrice`, {
                   setValueAs: (v) => (v === "" ? null : Number(v)),
                 })}

@@ -17,8 +17,30 @@ export const productVariantSchema = z.object({
   sizeId: z.number().int().nonnegative().optional(),
   skuCode: z.string().min(2, "SKU tối thiểu 2 ký tự").max(60),
   price: z.number().int().positive("Giá phải > 0"),
-  salePrice: z.number().int().nonnegative().nullable().optional(),
+  // positive chứ không phải nonnegative: backend đánh @Positive lên salePrice,
+  // nên số 0 bị trả 400. Để zod cho qua thì admin mất cả biểu mẫu mới biết -
+  // mà giá sale 0đ cũng chỉ có thể là gõ nhầm.
+  salePrice: z.number().int().positive("Giá sale phải > 0").nullable().optional(),
 });
+
+/**
+ * Giá sale phải THẤP HƠN giá gốc.
+ *
+ * Không phải chuyện hiển thị: khi đặt hàng backend luôn thu theo salePrice nếu
+ * nó khác null, trong khi trang sản phẩm chỉ gạch giá cũ khi salePrice < price.
+ * Đặt sale cao hơn giá gốc thì khách nhìn thấy một giá và bị tính một giá khác.
+ */
+const variantWithValidSale = productVariantSchema.refine(
+  (v) => v.salePrice == null || v.salePrice < v.price,
+  { message: "Giá sale phải thấp hơn giá gốc", path: ["salePrice"] },
+);
+
+/** Khoá của một tổ hợp màu × cỡ; trục để trống gộp về một ký hiệu chung để
+ *  "không phân màu" đụng với "không phân màu". Ràng buộc UNIQUE dưới DB không
+ *  bắt được trường hợp này vì PostgreSQL coi NULL là khác nhau. */
+function axisKey(v: { colorId?: number; sizeId?: number }): string {
+  return `${v.colorId ?? 0}/${v.sizeId ?? 0}`;
+}
 
 export const productSchema = z.object({
   name: z.string().min(2, "Tên tối thiểu 2 ký tự").max(255),
@@ -35,8 +57,24 @@ export const productSchema = z.object({
   isVisible: z.boolean(),
   specifications: z.array(productSpecSchema),
   variants: z
-    .array(productVariantSchema)
-    .min(1, "Cần tối thiểu 1 phiên bản"),
+    .array(variantWithValidSale)
+    .min(1, "Cần tối thiểu 1 phiên bản")
+    .superRefine((list, ctx) => {
+      const seen = new Map<string, number>();
+      list.forEach((v, i) => {
+        const k = axisKey(v);
+        const dau = seen.get(k);
+        if (dau !== undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Trùng tổ hợp màu × cỡ với phiên bản #${dau + 1}`,
+            path: [i, "colorId"],
+          });
+        } else {
+          seen.set(k, i);
+        }
+      });
+    }),
 });
 
 export type ProductFormInput = z.infer<typeof productSchema>;
