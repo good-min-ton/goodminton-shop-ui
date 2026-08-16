@@ -1,5 +1,25 @@
 import { z } from "zod";
 
+/**
+ * Đọc một số tiền từ ô `<input type="number">` cho react-hook-form.
+ *
+ * Không dùng thẳng `Number(v)`: react-hook-form đưa cả giá trị mặc định qua hàm
+ * này, và `Number(null)` bằng **0** chứ không phải null. Với một variant không
+ * khuyến mãi (backend trả `salePrice: null`), chỉ cần mở trang sửa rồi bấm Lưu
+ * mà không chạm vào ô giá sale là đã ghi xuống `salePrice = 0` — storefront đọc
+ * `salePrice != null && salePrice < price` nên coi sản phẩm đang giảm còn 0đ, và
+ * giỏ hàng lẫn POS cũng tính 0đ.
+ *
+ * `Number(undefined)` thì ra NaN, làm zod báo "expected number, received NaN" —
+ * một thông báo không nói được gì cho người dùng. Cả hai đều gộp về null: ô
+ * trống nghĩa là không có giá sale.
+ */
+export function numberFromInput(v: unknown): number | null {
+  if (v === "" || v == null) return null;
+  const n = Number(v);
+  return Number.isNaN(n) ? null : n;
+}
+
 export const productSpecSchema = z.object({
   name: z.string().min(1, "Tên không được trống").max(80),
   value: z.string().min(1, "Giá trị không được trống").max(255),
